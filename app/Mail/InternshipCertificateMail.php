@@ -28,8 +28,11 @@ class InternshipCertificateMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $mailFromName = \App\Models\Setting::where('key', 'mail_from_name')->value('value') ?? 'Pelindo';
+        $mailFromAddress = \App\Models\Setting::where('key', 'mail_from_address')->value('value') ?? 'sarhamsan32@gmail.com';
+
         return new Envelope(
-            from: new Address('sarhamsan32@gmail.com', 'Pelindo'),
+            from: new Address($mailFromAddress, $mailFromName),
             subject: 'Sertifikat Magang - Pelindo',
         );
     }

@@ -21,6 +21,9 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $mailFromName = \App\Models\Setting::where('key', 'mail_from_name')->value('value') ?? 'Pelindo';
+        $mailFromAddress = \App\Models\Setting::where('key', 'mail_from_address')->value('value') ?? 'sarhamsan32@gmail.com';
+
         return view('profile.edit', [
             'user' => $request->user(),
             'divisions' => Division::orderBy('name')->get(),
@@ -28,6 +31,8 @@ class ProfileController extends Controller
             'educationLevels' => EducationLevel::orderBy('name')->get(),
             'universities' => University::orderBy('name')->get(),
             'genders' => Gender::orderBy('name')->get(),
+            'mailFromName' => $mailFromName,
+            'mailFromAddress' => $mailFromAddress,
         ]);
     }
 

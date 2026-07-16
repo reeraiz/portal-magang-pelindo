@@ -40,6 +40,14 @@
                     @include('profile.partials.update-password-form')
                 </div>
             </div>
+
+            @if(auth()->user()->role === 'admin')
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+                <div class="max-w-2xl relative z-10">
+                    @include('profile.partials.update-email-settings-form')
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Right Column: Danger Zone -->

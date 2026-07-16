@@ -55,6 +55,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store')->middleware('throttle:10,1');
         Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy')->middleware('throttle:10,1');
     });
+
+    // Admin Only Routes
+    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+    });
 });
 
 Route::middleware('auth')->group(function () {

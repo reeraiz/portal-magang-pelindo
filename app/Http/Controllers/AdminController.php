@@ -10,6 +10,7 @@ use App\Models\InternshipType;
 use App\Models\EducationLevel;
 use App\Models\University;
 use App\Models\Gender;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -243,6 +244,7 @@ class AdminController extends Controller
         $allInternsQuery = User::where('role', 'intern')
                                ->whereNotNull('internship_end_date')
                                ->whereDate('internship_end_date', '<=', \Carbon\Carbon::today('Asia/Makassar'))
+                               ->has('logbooks', '>=', 22)
                                ->orderBy('name');
         $this->applyMentorScope($allInternsQuery, 'self');
         $allInterns = $allInternsQuery->get();
@@ -464,6 +466,17 @@ class AdminController extends Controller
         $path = $file->storeAs('certificates', $fileName, 'local');
         $fullPath = \Illuminate\Support\Facades\Storage::disk('local')->path($path);
 
+        // Override SMTP configuration if custom settings exist
+        $customMailAddress = \App\Models\Setting::where('key', 'mail_from_address')->value('value');
+        $customMailPassword = \App\Models\Setting::where('key', 'mail_password')->value('value');
+        
+        if ($customMailAddress && $customMailPassword) {
+            config([
+                'mail.mailers.smtp.username' => $customMailAddress,
+                'mail.mailers.smtp.password' => $customMailPassword,
+            ]);
+        }
+
         // Kirim email dengan lampiran
         Mail::to($intern->email)->send(new InternshipCertificateMail($intern, $fullPath, $fileName));
 
@@ -473,5 +486,36 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->with('status', 'Sertifikat berhasil dikirimkan ke email ' . $intern->email);
+    }
+
+    /**
+     * Simpan pembaruan pengaturan aplikasi.
+     */
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'mail_from_name' => 'required|string|max:255',
+            'mail_from_address' => 'required|email|max:255',
+            'mail_password' => 'nullable|string',
+        ]);
+
+        Setting::updateOrCreate(
+            ['key' => 'mail_from_name'],
+            ['value' => $request->mail_from_name]
+        );
+
+        Setting::updateOrCreate(
+            ['key' => 'mail_from_address'],
+            ['value' => $request->mail_from_address]
+        );
+
+        if ($request->filled('mail_password')) {
+            Setting::updateOrCreate(
+                ['key' => 'mail_password'],
+                ['value' => $request->mail_password]
+            );
+        }
+
+        return back()->with('status', 'settings-updated');
     }
 }
