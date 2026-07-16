@@ -13,7 +13,9 @@ use App\Models\Gender;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Mail\InternshipCertificateMail;
 
 class AdminController extends Controller
 {
@@ -238,7 +240,14 @@ class AdminController extends Controller
         $universities = University::orderBy('name')->get();
         $genders = Gender::all();
 
-        return view('admin.interns', compact('interns', 'mentors', 'divisions', 'internshipTypes', 'educationLevels', 'universities', 'genders'));
+        $allInternsQuery = User::where('role', 'intern')
+                               ->whereNotNull('internship_end_date')
+                               ->whereDate('internship_end_date', '<=', \Carbon\Carbon::today('Asia/Makassar'))
+                               ->orderBy('name');
+        $this->applyMentorScope($allInternsQuery, 'self');
+        $allInterns = $allInternsQuery->get();
+
+        return view('admin.interns', compact('interns', 'mentors', 'divisions', 'internshipTypes', 'educationLevels', 'universities', 'genders', 'allInterns'));
     }
 
     /**
@@ -424,5 +433,45 @@ class AdminController extends Controller
         $user->delete();
 
         return redirect()->back()->with('status', 'Akun ' . $userName . ' berhasil dihapus secara permanen.');
+    }
+
+    /**
+     * Upload dan kirim sertifikat magang.
+     */
+    public function sendCertificate(Request $request)
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Hanya Admin yang dapat mengirim sertifikat.');
+        }
+
+        $request->validate([
+            'intern_id' => 'required|exists:users,id',
+            'certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // Max 5MB
+        ], [
+            'certificate.max' => 'Gagal: Ukuran file sertifikat melebihi batas maksimal 5MB.',
+            'certificate.mimes' => 'Gagal: Format file harus berupa PDF, JPG, JPEG, atau PNG.',
+            'certificate.required' => 'Gagal: Anda belum memilih file sertifikat.',
+            'certificate.uploaded' => 'Gagal: File tidak dapat diunggah. Ukuran file kemungkinan melebihi batas maksimal server.',
+            'intern_id.required' => 'Gagal: Anda belum memilih Intern penerima sertifikat.'
+        ]);
+
+        $intern = User::where('role', 'intern')->findOrFail($request->intern_id);
+
+        $file = $request->file('certificate');
+        $fileName = 'Sertifikat_Magang_' . Str::slug($intern->name) . '.' . $file->getClientOriginalExtension();
+        
+        // Simpan file ke storage lokal untuk lampiran
+        $path = $file->storeAs('certificates', $fileName, 'local');
+        $fullPath = \Illuminate\Support\Facades\Storage::disk('local')->path($path);
+
+        // Kirim email dengan lampiran
+        Mail::to($intern->email)->send(new InternshipCertificateMail($intern, $fullPath, $fileName));
+
+        // Hapus file setelah dikirim untuk menghemat space (opsional, tapi baik untuk praktik)
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+
+        return redirect()->back()->with('status', 'Sertifikat berhasil dikirimkan ke email ' . $intern->email);
     }
 }

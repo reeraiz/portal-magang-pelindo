@@ -197,7 +197,68 @@
             </table>
         </div>
     </div>
-</div>
+    
+    <!-- Upload Sertifikat Magang -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-8">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h3 class="font-bold text-gray-800">Upload & Kirim Sertifikat Magang</h3>
+            <p class="text-xs text-gray-500">Kirim sertifikat melalui email kepada peserta yang status magangnya sudah selesai.</p>
+        </div>
+        <div class="p-6">
+            <form action="{{ route('admin.certificate.send') }}" method="POST" enctype="multipart/form-data" class="space-y-4" onsubmit="return validateCertificateSize(this)">
+                @csrf
+                @if($errors->has('certificate') || $errors->has('intern_id'))
+                <div class="bg-red-50 text-red-700 p-3 rounded-xl border border-red-200 text-sm flex items-start gap-2">
+                    <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div>
+                        <p class="font-bold">Pengiriman Gagal</p>
+                        <ul class="list-disc list-inside text-xs mt-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                @endif
+
+                <!-- JS Validation Error Alert (Hidden by default) -->
+                <div id="js-error-alert" class="hidden bg-red-50 text-red-700 p-3 rounded-xl border border-red-200 text-sm flex items-start gap-2 transition-all">
+                    <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div>
+                        <p class="font-bold">Validasi Gagal</p>
+                        <p id="js-error-message" class="text-xs mt-1"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Intern (Selesai Magang)</label>
+                        <input type="hidden" name="intern_id" id="selected_intern_id" required>
+                        <div class="flex items-center gap-3">
+                            <button type="button" onclick="openSelectInternModal()" class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 text-sm font-bold rounded-xl border border-gray-200 transition-colors shadow-sm">
+                                Pilih Intern
+                            </button>
+                            <span id="selected_intern_name" class="text-sm text-gray-500 font-medium italic">Belum ada yang dipilih</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">File Sertifikat (PDF/Image)</label>
+                        <input type="file" name="certificate" accept=".pdf,.jpg,.jpeg,.png" required class="w-full text-sm border border-gray-200 rounded-xl px-4 py-1.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                        <div class="mt-2 flex items-start gap-2 bg-yellow-50 text-yellow-700 p-2.5 rounded-lg border border-yellow-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <p class="text-xs">Maksimal ukuran file <strong>5MB</strong> (PDF/JPG/PNG). Jika lebih, sistem akan menolak upload.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end mt-4">
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all hover:shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        Kirim via Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 <!-- Create User Modal -->
 <div id="createUserModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
@@ -377,6 +438,40 @@
     </div>
 </div>
 
+<!-- Select Intern Modal -->
+<div id="selectInternModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm transition-opacity" onclick="closeSelectInternModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg leading-6 font-bold text-gray-900">Pilih Intern</h3>
+                    <button type="button" onclick="closeSelectInternModal()" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="max-h-96 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-100">
+                    @foreach($allInterns as $intern)
+                        <button type="button" onclick="selectIntern({{ $intern->id }}, '{{ addslashes($intern->name) }} ({{ addslashes($intern->email) }})')" class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between transition-colors">
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">{{ $intern->name }}</p>
+                                <p class="text-xs text-gray-500">{{ $intern->email }} - {{ $intern->division ?? 'Tidak ada divisi' }}</p>
+                            </div>
+                            <span class="text-blue-600 bg-blue-50 px-2 py-1 rounded-lg text-xs font-bold">Pilih</span>
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="closeSelectInternModal()" class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Edit Mentor Modal -->
 <div id="editMentorModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -486,6 +581,47 @@
 
     function closeEditMentor() {
         document.getElementById('editMentorModal').classList.add('hidden');
+    }
+    function openSelectInternModal() {
+        document.getElementById('selectInternModal').classList.remove('hidden');
+    }
+
+    function closeSelectInternModal() {
+        document.getElementById('selectInternModal').classList.add('hidden');
+    }
+
+    function selectIntern(id, name) {
+        document.getElementById('selected_intern_id').value = id;
+        document.getElementById('selected_intern_name').textContent = name;
+        document.getElementById('selected_intern_name').classList.remove('italic', 'text-gray-500');
+        document.getElementById('selected_intern_name').classList.add('text-blue-700', 'font-bold');
+        closeSelectInternModal();
+    }
+
+    function validateCertificateSize(form) {
+        const fileInput = form.querySelector('input[name="certificate"]');
+        const errorAlert = document.getElementById('js-error-alert');
+        const errorMessage = document.getElementById('js-error-message');
+        
+        // Sembunyikan alert sebelumnya jika ada
+        errorAlert.classList.add('hidden');
+        
+        if (fileInput.files.length > 0) {
+            const fileSize = fileInput.files[0].size;
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            
+            if (fileSize > maxSize) {
+                const sizeInMB = (fileSize / (1024*1024)).toFixed(2);
+                errorMessage.textContent = `Ukuran file sertifikat yang Anda pilih adalah ${sizeInMB} MB. Batas maksimal adalah 5 MB. Silakan kompres file Anda terlebih dahulu.`;
+                errorAlert.classList.remove('hidden');
+                
+                // Scroll sedikit ke atas agar alert terlihat
+                errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                return false;
+            }
+        }
+        return true;
     }
 </script>
 @endsection
