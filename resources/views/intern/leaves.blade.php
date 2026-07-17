@@ -26,7 +26,7 @@
     </div>
 
     <!-- Stat Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xl">
                 {{ $totalLeaves }}
@@ -52,6 +52,15 @@
             <div>
                 <p class="text-xs font-semibold text-gray-500">Disetujui</p>
                 <h3 class="text-lg font-bold text-gray-800">Izin Sah</h3>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-indigo-100 shadow-sm flex items-center gap-4 relative overflow-hidden">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-xl">
+                {{ max(0, 3 - ($usedQuota ?? 0)) }}
+            </div>
+            <div>
+                <p class="text-xs font-semibold text-indigo-600">Sisa Kuota Bulan Ini</p>
+                <h3 class="text-base font-bold text-gray-800">Maks 3 Hari/Bulan</h3>
             </div>
         </div>
     </div>

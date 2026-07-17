@@ -39,16 +39,32 @@
 
     <!-- Data Table -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
-        <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gray-50/50">
-            <h3 class="font-bold text-gray-800">Daftar Absensi</h3>
-            <form method="GET" action="{{ route('admin.absensi') }}" class="flex flex-wrap items-center gap-2">
-                <input type="text" name="filter_name" placeholder="Cari nama intern..." class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 w-44 sm:w-56" value="{{ request('filter_name') }}">
-                <input type="date" name="filter_date" class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500" value="{{ request('filter_date') }}">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">Filter</button>
-                @if(request('filter_date') || request('filter_name'))
-                <a href="{{ route('admin.absensi') }}" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">Reset</a>
-                @endif
-            </form>
+        <div class="px-6 py-4 border-b border-gray-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-gray-50/50">
+            <div>
+                <h3 class="font-bold text-gray-800 text-base">Daftar Absensi</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Pantau dan verifikasi kehadiran harian peserta magang</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-start lg:justify-end">
+                <form method="GET" action="{{ route('admin.absensi') }}" class="flex flex-wrap items-center gap-2">
+                    <input type="text" name="filter_name" placeholder="Cari nama intern..." class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 w-36 sm:w-48" value="{{ request('filter_name') }}">
+                    <input type="date" name="filter_date" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500" value="{{ request('filter_date') }}">
+                    <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">Filter</button>
+                    @if(request('filter_date') || request('filter_name'))
+                    <a href="{{ route('admin.absensi') }}" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">Reset</a>
+                    @endif
+                </form>
+                <div class="h-5 w-px bg-gray-300 hidden sm:block"></div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.absensi.export', request()->query()) }}" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                        Export Excel
+                    </a>
+                    <a href="{{ route('admin.absensi.print', request()->query()) }}" target="_blank" class="px-3 py-1.5 bg-blue-900 hover:bg-blue-950 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Cetak Laporan Resmi
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="overflow-x-auto flex-1">

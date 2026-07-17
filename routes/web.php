@@ -38,9 +38,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin & Pembimbing Routes
     Route::middleware(['role:admin,pembimbing'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::post('/notifications/trigger', [AdminController::class, 'triggerNotificationGateway'])->name('notifications.trigger');
         Route::get('/absensi', [AdminController::class, 'absensi'])->name('absensi');
+        Route::get('/absensi/export', [AdminController::class, 'exportAbsensi'])->name('absensi.export');
+        Route::get('/absensi/print', [AdminController::class, 'printAbsensi'])->name('absensi.print');
         Route::get('/leaves', [LeaveController::class, 'adminIndex'])->name('leaves');
         Route::get('/logbook', [AdminController::class, 'logbook'])->name('logbook');
+        Route::get('/logbook/export', [AdminController::class, 'exportLogbook'])->name('logbook.export');
+        Route::get('/logbook/print', [AdminController::class, 'printLogbook'])->name('logbook.print');
         Route::get('/interns', [AdminController::class, 'interns'])->name('interns');
         Route::post('/interns/certificate/send', [AdminController::class, 'sendCertificate'])->name('certificate.send');
 

@@ -23,7 +23,18 @@ class LeaveController extends Controller
         $pendingLeaves = LeaveRequest::where('user_id', Auth::id())->where('status', 'pending')->count();
         $approvedLeaves = LeaveRequest::where('user_id', Auth::id())->where('status', 'approved')->count();
 
-        return view('intern.leaves', compact('leaves', 'totalLeaves', 'pendingLeaves', 'approvedLeaves'));
+        $now = Carbon::now('Asia/Makassar');
+        $usedQuota = LeaveRequest::where('user_id', Auth::id())
+            ->whereIn('type', ['izin', 'cuti'])
+            ->whereIn('status', ['pending', 'verified', 'approved'])
+            ->whereMonth('start_date', $now->month)
+            ->whereYear('start_date', $now->year)
+            ->get()
+            ->sum(function ($req) {
+                return Carbon::parse($req->start_date)->diffInDays(Carbon::parse($req->end_date)) + 1;
+            });
+
+        return view('intern.leaves', compact('leaves', 'totalLeaves', 'pendingLeaves', 'approvedLeaves', 'usedQuota'));
     }
 
     /**
@@ -42,6 +53,27 @@ class LeaveController extends Controller
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->store('leave-attachments', 'public');
+        }
+
+        if (in_array($request->type, ['izin', 'cuti'])) {
+            $requestedDays = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
+            
+            $usedDays = \App\Models\LeaveRequest::where('user_id', Auth::id())
+                ->whereIn('type', ['izin', 'cuti'])
+                ->whereIn('status', ['pending', 'verified', 'approved'])
+                ->whereMonth('start_date', Carbon::parse($request->start_date)->month)
+                ->whereYear('start_date', Carbon::parse($request->start_date)->year)
+                ->get()
+                ->sum(function ($req) {
+                    return Carbon::parse($req->start_date)->diffInDays(Carbon::parse($req->end_date)) + 1;
+                });
+                
+            $maxQuotaPerMonth = 3;
+            if (($usedDays + $requestedDays) > $maxQuotaPerMonth) {
+                return back()->withErrors([
+                    'type' => 'Gagal: Kuota izin/cuti Anda bulan ini telah habis/terlampaui (Maksimal '.$maxQuotaPerMonth.' hari/bulan). Anda telah menggunakan/mengajukan '.$usedDays.' hari bulan ini.'
+                ])->withInput();
+            }
         }
 
         LeaveRequest::create([

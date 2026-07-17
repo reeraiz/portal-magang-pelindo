@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Mail\InternshipCertificateMail;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Models\NotificationLog;
+use Illuminate\Support\Facades\Artisan;
 
 class AdminController extends Controller
 {
@@ -92,9 +95,108 @@ class AdminController extends Controller
         $this->applyMentorScope($internsQuery, 'self');
         $interns = $internsQuery->get();
 
+        // Peringatan Sering Alpa (> 3 Hari) - 100% Sesuai Data Database
+        $lowAttendanceInterns = collect();
+        foreach ($interns as $intern) {
+            $explicitAlpa = Attendance::where('user_id', $intern->id)->where('status', 'alpa')->count();
+            $missingDays = 0;
+            $attendanceRate = 100;
+
+            if ($intern->internship_start_date && $intern->internship_end_date) {
+                $start = Carbon::parse($intern->internship_start_date, 'Asia/Makassar')->startOfDay();
+                $today = Carbon::now('Asia/Makassar')->startOfDay();
+                
+                if ($today->gt($start)) {
+                    $elapsedDays = max(1, $start->diffInDaysFiltered(function (Carbon $date) {
+                        return ! $date->isWeekend();
+                    }, min($today, Carbon::parse($intern->internship_end_date, 'Asia/Makassar')->endOfDay())));
+                    
+                    $validAttendances = Attendance::where('user_id', $intern->id)->where(function ($q) {
+                        $q->whereNotNull('check_in')->orWhereIn('status', ['verified', 'izin']);
+                    })->count();
+                    
+                    $missingDays = max(0, $elapsedDays - $validAttendances);
+                    $attendanceRate = min(100, round(($validAttendances / $elapsedDays) * 100));
+                }
+            }
+
+            // Alpa sejati = maksimal antara catatan status 'alpa' eksplisit di database & hari kerja yang dilewatkan tanpa keterangan
+            $alpaCount = max($explicitAlpa, $missingDays);
+
+            // Tampilkan HANYA jika Alpa > 3 (persis sesuai permintaan user)
+            if ($alpaCount > 3) {
+                $intern->alpa_count = $alpaCount;
+                $intern->attendance_rate = $attendanceRate;
+                $lowAttendanceInterns->push($intern);
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // DATA GRAFIK VISUALISASI KINERJA & KEHADIRAN (MURNI DATA DATABASE)
+        // -----------------------------------------------------------------
+        $divisionsList = Division::pluck('name')->toArray();
+        if (empty($divisionsList)) {
+            $divisionsList = User::where('role', 'intern')->whereNotNull('division')->pluck('division')->unique()->values()->toArray();
+        }
+        $chartDivisionLabels = [];
+        $chartDivisionLateAvg = [];
+
+        foreach ($divisionsList as $divName) {
+            $chartDivisionLabels[] = Str::limit($divName, 22);
+            $divUserQuery = User::where('role', 'intern')->where('division', $divName);
+            $this->applyMentorScope($divUserQuery);
+            $divUserIds = $divUserQuery->pluck('id');
+
+            if ($divUserIds->isNotEmpty()) {
+                $attendancesDiv = Attendance::whereIn('user_id', $divUserIds)
+                    ->whereNotNull('check_in')
+                    ->get();
+                    
+                $totalLateMinutes = 0;
+                foreach ($attendancesDiv as $att) {
+                    $dateObj = Carbon::parse($att->date);
+                    $targetTime = $dateObj->isFriday() ? '07:30:00' : '08:00:00';
+                    if ($att->check_in > $targetTime) {
+                        $diff = Carbon::parse($targetTime)->diffInMinutes(Carbon::parse($att->check_in));
+                        $totalLateMinutes += $diff;
+                    }
+                }
+                $avg = $attendancesDiv->count() > 0 ? round($totalLateMinutes / $attendancesDiv->count(), 1) : 0;
+                $chartDivisionLateAvg[] = $avg;
+            } else {
+                $chartDivisionLateAvg[] = 0;
+            }
+        }
+
+        $chartMonths = [];
+        $chartHadirData = [];
+        $chartIzinData = [];
+        $chartAlpaData = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $monthDate = Carbon::now('Asia/Makassar')->subMonths($i);
+            $chartMonths[] = $monthDate->translatedFormat('M Y');
+            $m = $monthDate->month;
+            $y = $monthDate->year;
+
+            $attQuery = Attendance::whereMonth('date', $m)->whereYear('date', $y);
+            $this->applyMentorScope($attQuery);
+
+            $hadirCount = (clone $attQuery)->where('status', 'verified')->count();
+            $izinCount = (clone $attQuery)->where('status', 'izin')->count();
+            $alpaCount = (clone $attQuery)->where('status', 'alpa')->count();
+
+            $chartHadirData[] = $hadirCount;
+            $chartIzinData[] = $izinCount;
+            $chartAlpaData[] = $alpaCount;
+        }
+
+        $recentNotifications = NotificationLog::with('user')->orderBy('created_at', 'desc')->take(6)->get();
+
         return view('admin.dashboard', compact(
             'totalInterns', 'activeInterns', 'pendingAbsensi', 'recentActivities',
-            'totalLogbooks', 'pendingLogbooks', 'verifiedLogbooks', 'endingSoonInterns', 'interns'
+            'totalLogbooks', 'pendingLogbooks', 'verifiedLogbooks', 'endingSoonInterns', 'interns', 'lowAttendanceInterns',
+            'chartDivisionLabels', 'chartDivisionLateAvg', 'chartMonths', 'chartHadirData', 'chartIzinData', 'chartAlpaData', 'recentNotifications'
         ));
     }
 
@@ -517,5 +619,175 @@ class AdminController extends Controller
         }
 
         return back()->with('status', 'settings-updated');
+    }
+
+    /**
+     * Ekspor data absensi intern ke format CSV / Excel (.xlsx compatible).
+     */
+    public function exportAbsensi(Request $request)
+    {
+        $query = Attendance::with('user');
+        $this->applyMentorScope($query);
+
+        if ($request->filled('filter_date')) {
+            $query->whereDate('date', $request->filter_date);
+        }
+        if ($request->filled('filter_name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->filter_name.'%');
+            });
+        }
+
+        $attendances = $query->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get();
+
+        $fileName = 'Rekap_Absensi_Intern_Pelindo_' . date('Y-m-d_H-i') . '.csv';
+
+        return new StreamedResponse(function () use ($attendances) {
+            $handle = fopen('php://output', 'w');
+            // Tambahkan UTF-8 BOM agar langsung terbaca rapi oleh Microsoft Excel
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            fputcsv($handle, [
+                'No', 'ID Intern', 'Nama Intern', 'Divisi', 'Mentor', 
+                'Tanggal', 'Jam Masuk', 'Jam Pulang', 'Status Kehadiran', 'Lokasi', 'Catatan / Keterlambatan'
+            ]);
+
+            foreach ($attendances as $index => $row) {
+                fputcsv($handle, [
+                    $index + 1,
+                    $row->user->intern_id ?? '-',
+                    $row->user->name ?? '-',
+                    $row->user->division ?? '-',
+                    $row->user->mentor->name ?? '-',
+                    $row->date ? Carbon::parse($row->date)->format('Y-m-d') : '-',
+                    $row->check_in ?? '-',
+                    $row->check_out ?? '-',
+                    strtoupper($row->status ?? '-'),
+                    $row->location ?? '-',
+                    $row->notes ?? '-'
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    /**
+     * Ekspor data logbook intern ke format CSV / Excel (.xlsx compatible).
+     */
+    public function exportLogbook(Request $request)
+    {
+        $query = Logbook::with('user');
+        $this->applyMentorScope($query);
+
+        if ($request->filled('filter_date')) {
+            $query->whereDate('date', $request->filter_date);
+        }
+        if ($request->filled('filter_name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->filter_name.'%');
+            });
+        }
+
+        $logbooks = $query->orderBy('date', 'desc')->orderBy('created_at', 'desc')->get();
+
+        $fileName = 'Rekap_Logbook_Intern_Pelindo_' . date('Y-m-d_H-i') . '.csv';
+
+        return new StreamedResponse(function () use ($logbooks) {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            fputcsv($handle, [
+                'No', 'ID Intern', 'Nama Intern', 'Divisi', 'Mentor', 
+                'Tanggal', 'Waktu', 'Kategori', 'Judul Aktivitas', 'Deskripsi', 'Status Review', 'Nilai (Grade)', 'Feedback Mentor'
+            ]);
+
+            foreach ($logbooks as $index => $row) {
+                fputcsv($handle, [
+                    $index + 1,
+                    $row->user->intern_id ?? '-',
+                    $row->user->name ?? '-',
+                    $row->user->division ?? '-',
+                    $row->user->mentor->name ?? '-',
+                    $row->date ? Carbon::parse($row->date)->format('Y-m-d') : '-',
+                    $row->time ?? '-',
+                    $row->category ?? '-',
+                    $row->title ?? '-',
+                    $row->description ?? '-',
+                    strtoupper($row->status ?? '-'),
+                    $row->grade ?? '-',
+                    $row->feedback ?? '-'
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    /**
+     * Tampilkan halaman cetak resmi rekap absensi dengan kop surat Pelindo.
+     */
+    public function printAbsensi(Request $request)
+    {
+        $query = Attendance::with('user');
+        $this->applyMentorScope($query);
+
+        if ($request->filled('filter_date')) {
+            $query->whereDate('date', $request->filter_date);
+        }
+        if ($request->filled('filter_name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->filter_name.'%');
+            });
+        }
+
+        $attendances = $query->orderBy('date', 'desc')->get();
+        
+        $totalHadir = (clone $query)->where('status', 'verified')->count();
+        $totalIzin = (clone $query)->where('status', 'izin')->count();
+        $totalAlpa = (clone $query)->where('status', 'alpa')->count();
+
+        return view('admin.print_absensi', compact('attendances', 'totalHadir', 'totalIzin', 'totalAlpa'));
+    }
+
+    /**
+     * Tampilkan halaman cetak resmi rekap logbook dengan kop surat Pelindo.
+     */
+    public function printLogbook(Request $request)
+    {
+        $query = Logbook::with('user');
+        $this->applyMentorScope($query);
+
+        if ($request->filled('filter_date')) {
+            $query->whereDate('date', $request->filter_date);
+        }
+        if ($request->filled('filter_name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->filter_name.'%');
+            });
+        }
+
+        $logbooks = $query->orderBy('date', 'desc')->get();
+        $totalLogbooks = (clone $query)->count();
+        $verifiedLogbooks = (clone $query)->where('status', 'verified')->count();
+
+        return view('admin.print_logbook', compact('logbooks', 'totalLogbooks', 'verifiedLogbooks'));
+    }
+
+    /**
+     * Jalankan dan pemicu manual Notification Gateway (Email & WhatsApp Reminders).
+     */
+    public function triggerNotificationGateway()
+    {
+        Artisan::call('notifications:send-reminders', ['--force' => true]);
+        $output = Artisan::output();
+
+        return redirect()->route('admin.dashboard')->with('status', 'Notification Gateway (Email / WhatsApp) berhasil dijalankan! ' . trim(explode("\n", $output)[0] ?? 'Reminders terkirim.'));
     }
 }

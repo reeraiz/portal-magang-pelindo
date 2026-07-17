@@ -134,6 +134,24 @@ class InternController extends Controller
 
         $now = Carbon::now('Asia/Makassar');
 
+        if ($request->reason === 'izin') {
+            $usedIzinDays = Attendance::where('user_id', Auth::id())
+                ->whereIn('status', ['pending', 'verified', 'izin'])
+                ->where(function ($q) {
+                    $q->where('notes', 'like', '%[IZIN]%')->orWhere('notes', 'like', '%[CUTI]%');
+                })
+                ->whereMonth('date', $now->month)
+                ->whereYear('date', $now->year)
+                ->count();
+
+            $maxQuotaPerMonth = 3;
+            if ($usedIzinDays >= $maxQuotaPerMonth) {
+                return back()->withErrors([
+                    'reason' => 'Gagal: Kuota izin harian Anda bulan ini telah habis (Maksimal '.$maxQuotaPerMonth.' hari/bulan). Jika Anda sakit, pilih opsi SAKIT dan lampirkan surat dokter.'
+                ])->withInput();
+            }
+        }
+
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->store('izin-attachments', 'public');
