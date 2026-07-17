@@ -477,6 +477,16 @@ class AdminController extends Controller
 
         $query = Logbook::where('status', 'pending');
         $this->applyMentorScope($query);
+
+        if ($request->filled('filter_date')) {
+            $query->whereDate('date', $request->filter_date);
+        }
+        if ($request->filled('filter_name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->filter_name.'%');
+            });
+        }
+
         $pendingLogbooks = $query->get();
 
         if ($pendingLogbooks->isEmpty()) {

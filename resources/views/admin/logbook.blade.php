@@ -204,6 +204,12 @@
             <form id="bulkReviewForm" action="{{ route('admin.verify.logbook.bulk') }}" method="POST">
                 @csrf
                 <input type="hidden" name="action" id="bulk-review-action">
+                @if(request('filter_date'))
+                    <input type="hidden" name="filter_date" value="{{ request('filter_date') }}">
+                @endif
+                @if(request('filter_name'))
+                    <input type="hidden" name="filter_name" value="{{ request('filter_name') }}">
+                @endif
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 class="text-lg leading-6 font-bold text-gray-900 mb-1" id="bulk-review-modal-title">Bulk Review Logbook</h3>
                     <p class="text-sm text-gray-500 mb-4" id="bulk-review-modal-desc"></p>
