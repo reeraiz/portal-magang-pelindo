@@ -144,7 +144,7 @@ class AdminController extends Controller
         foreach ($divisionsList as $divName) {
             $chartDivisionLabels[] = Str::limit($divName, 22);
             $divUserQuery = User::where('role', 'intern')->where('division', $divName);
-            $this->applyMentorScope($divUserQuery);
+            $this->applyMentorScope($divUserQuery, 'self');
             $divUserIds = $divUserQuery->pluck('id');
 
             if ($divUserIds->isNotEmpty()) {
