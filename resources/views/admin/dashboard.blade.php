@@ -8,7 +8,7 @@
     <!-- ========================================================= -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Kolom Kiri: Statistik Absensi & Intern -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-100 transition-all duration-300 flex flex-col justify-between">
             <h3 class="font-bold text-gray-800 text-base mb-4 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
                 Ringkasan Absensi Magang
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Kolom Kanan: Ringkasan Logbook -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-100 transition-all duration-300 flex flex-col justify-between">
             <h3 class="font-bold text-gray-800 text-base mb-4 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
                 Ringkasan Logbook
@@ -57,7 +57,7 @@
     <!-- ========================================================= -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Kolom Kiri: Aktivitas -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col max-h-[460px]">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col max-h-[460px]">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
                 <h3 class="font-bold text-gray-800 text-base">Aktivitas</h3>
                 <a href="{{ route('admin.absensi') }}" class="text-xs text-blue-600 font-semibold hover:text-blue-800 transition-colors">Lihat Semua</a>
@@ -92,7 +92,7 @@
         </div>
 
         <!-- Kolom Kanan: Daftar Intern -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col max-h-[460px]">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col max-h-[460px]">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
                 <div>
                     <h3 class="font-bold text-gray-800 text-base">Daftar Intern</h3>
