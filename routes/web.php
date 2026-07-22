@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/interns/certificate/send', [AdminController::class, 'sendCertificate'])->name('certificate.send');
         
         // Shift Management
-
+        Route::post('/interns/bulk-shift', [AdminController::class, 'bulkUpdateShift'])->name('interns.bulk-shift');
         Route::post('/verify-absensi/{id}', [AdminController::class, 'verifyAbsensi'])->name('verify.absensi')->middleware('throttle:30,1');
         Route::post('/verify-leave/{id}', [LeaveController::class, 'verify'])->name('verify.leave')->middleware('throttle:30,1');
         Route::post('/verify-logbook/{id}', [AdminController::class, 'verifyLogbook'])->name('verify.logbook')->middleware('throttle:30,1');

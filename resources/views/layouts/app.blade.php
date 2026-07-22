@@ -142,6 +142,61 @@
                     });
                 });
             });
+
+            // PWA Installation Handler
+            let deferredPrompt;
+            const pwaInstallBtn = document.getElementById('pwa-install-btn');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent the mini-infobar from appearing on mobile
+                e.preventDefault();
+                // Stash the event so it can be triggered later.
+                deferredPrompt = e;
+                // Update UI notify the user they can install the PWA
+                if (pwaInstallBtn) {
+                    pwaInstallBtn.classList.remove('hidden');
+                }
+            });
+
+            if (pwaInstallBtn) {
+                pwaInstallBtn.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        // Show the install prompt
+                        deferredPrompt.prompt();
+                        // Wait for the user to respond to the prompt
+                        const { outcome } = await deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            pwaInstallBtn.classList.add('hidden');
+                        }
+                        deferredPrompt = null;
+                    } else {
+                        // Fallback for iOS or unsupported browsers
+                        Swal.fire({
+                            title: 'Install Aplikasi',
+                            html: 'Untuk pengguna iOS: Buka menu Share (bagikan) di Safari lalu pilih <b>"Add to Home Screen"</b>.<br><br>Untuk Android: Buka menu browser (titik tiga) lalu pilih <b>"Install App"</b> atau <b>"Add to Home Screen"</b>.',
+                            icon: 'info',
+                            confirmButtonColor: '#2563eb',
+                            confirmButtonText: 'Mengerti',
+                            customClass: {
+                                popup: 'rounded-2xl',
+                                confirmButton: 'rounded-xl'
+                            }
+                        });
+                    }
+                });
+
+                // Tampilkan tombol untuk iOS karena iOS Safari tidak memicu beforeinstallprompt
+                const isIos = () => {
+                    const userAgent = window.navigator.userAgent.toLowerCase();
+                    return /iphone|ipad|ipod/.test(userAgent);
+                };
+                // Deteksi jika sudah dalam mode PWA (standalone) di iOS
+                const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+                if (isIos() && !isInStandaloneMode()) {
+                    pwaInstallBtn.classList.remove('hidden');
+                }
+            }
         </script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </body>

@@ -94,13 +94,19 @@ class InternController extends Controller
             $attendance->status = 'verified';
             $attendance->location = $request->location ?? 'WFO - Kantor Pusat';
 
+            $shift = Auth::user()->shift ?? 'pagi';
             $isFriday = $now->isFriday();
 
-            $targetMasukHour = $isFriday ? 7 : 8;
-            $targetMasukMinute = $isFriday ? 30 : 0;
-            $targetMasukStr = $isFriday ? '07:30:00' : '08:00:00';
+            if ($shift === 'siang') {
+                $targetMasukStr = '12:00:00';
+                $jamMasuk = Carbon::createFromTime(12, 0, 0, 'Asia/Makassar');
+            } else {
+                $targetMasukHour = $isFriday ? 7 : 8;
+                $targetMasukMinute = $isFriday ? 30 : 0;
+                $targetMasukStr = $isFriday ? '07:30:00' : '08:00:00';
+                $jamMasuk = Carbon::createFromTime($targetMasukHour, $targetMasukMinute, 0, 'Asia/Makassar');
+            }
 
-            $jamMasuk = Carbon::createFromTime($targetMasukHour, $targetMasukMinute, 0, 'Asia/Makassar');
             if ($now->format('H:i:s') <= $targetMasukStr) {
                 $attendance->notes = 'Tepat Waktu';
             } else {
@@ -110,8 +116,14 @@ class InternController extends Controller
         } elseif ($type === 'check_out' && $attendance->check_in && ! $attendance->check_out) {
             $attendance->check_out = $now->format('H:i:s');
             
+            $shift = Auth::user()->shift ?? 'pagi';
             $isFriday = $now->isFriday();
-            $targetPulangStr = $isFriday ? '16:30:00' : '17:00:00';
+
+            if ($shift === 'siang') {
+                $targetPulangStr = $isFriday ? '16:30:00' : '17:00:00';
+            } else {
+                $targetPulangStr = '12:00:00';
+            }
             
             if ($now->format('H:i:s') < $targetPulangStr) {
                 $attendance->notes = 'Terlalu Cepat Pulang';

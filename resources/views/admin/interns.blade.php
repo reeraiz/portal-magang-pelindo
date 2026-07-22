@@ -29,19 +29,59 @@
             <h3 class="font-bold text-gray-800">Daftar Intern</h3>
             <form action="{{ route('admin.interns') }}" method="GET" class="flex flex-wrap items-center gap-2">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, email, divisi..." class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 w-48 sm:w-64">
+                <div class="relative">
+                    <select name="shift" onchange="this.form.submit()" class="text-sm border border-gray-200 rounded-lg pl-9 pr-8 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white min-w-[140px]">
+                        <option value="">Semua Shift</option>
+                        <option value="pagi" {{ request('shift') === 'pagi' ? 'selected' : '' }}>Shift Pagi</option>
+                        <option value="siang" {{ request('shift') === 'siang' ? 'selected' : '' }}>Shift Siang</option>
+                    </select>
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <svg class="w-4 h-4 text-gray-400 absolute right-3 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">Filter</button>
-                @if(request('search'))
+                @if(request('search') || request('shift'))
                 <a href="{{ route('admin.interns') }}" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">Reset</a>
                 @endif
             </form>
+        </div>
+
+        <div class="px-6 py-3 bg-blue-50/50 border-b border-gray-100 hidden items-center justify-between transition-all" id="bulk-action-bar">
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md"><span id="selected-count">0</span> terpilih</span>
+                <span class="text-sm text-gray-600">Ubah shift secara massal:</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <form action="{{ route('admin.interns.bulk-shift') }}" method="POST" id="bulk-form-pagi" class="inline">
+                    @csrf
+                    <input type="hidden" name="shift" value="pagi">
+                    <!-- Hidden inputs for IDs will be appended here via JS -->
+                    <button type="button" onclick="submitBulkShift('pagi')" class="px-3 py-1.5 bg-white border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                        Set ke Pagi
+                    </button>
+                </form>
+                <form action="{{ route('admin.interns.bulk-shift') }}" method="POST" id="bulk-form-siang" class="inline">
+                    @csrf
+                    <input type="hidden" name="shift" value="siang">
+                    <button type="button" onclick="submitBulkShift('siang')" class="px-3 py-1.5 bg-white border border-orange-200 text-orange-600 hover:bg-orange-500 hover:text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                        Set ke Siang
+                    </button>
+                </form>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100">
                     <tr>
+                        <th class="px-4 py-4 w-16 text-center">
+                            <div class="flex flex-col items-center justify-center gap-1">
+                                <input type="checkbox" id="selectAllInterns" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" onclick="toggleAllCheckboxes(this)" title="Pilih Semua">
+                                <span class="text-[10px] text-gray-400 font-semibold leading-tight cursor-help text-center" title="Centang untuk memilih banyak intern sekaligus, lalu ubah shift mereka di menu Bulk Action yang muncul di atas tabel.">Atur<br>Shift</span>
+                            </div>
+                        </th>
                         <th class="px-6 py-4">Nama</th>
                         <th class="px-6 py-4">Divisi</th>
+                        <th class="px-6 py-4">Shift</th>
                         <th class="px-6 py-4">Periode Magang</th>
                         <th class="px-6 py-4">Mentor</th>
                         <th class="px-6 py-4">Statistik</th>
@@ -51,6 +91,9 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($interns as $intern)
                     <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-4 py-4">
+                            <input type="checkbox" name="intern_ids[]" value="{{ $intern->id }}" class="intern-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" onchange="updateBulkActionUI()">
+                        </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 border-2 border-white shadow-sm">
@@ -64,6 +107,26 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="text-sm text-gray-700 font-medium">{{ $intern->division ?? '-' }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <form action="{{ route('admin.interns.update', $intern->id) }}" method="POST" class="m-0">
+                                @csrf
+                                @method('PUT')
+                                <div class="relative inline-block">
+                                    @if($intern->shift === 'siang')
+                                        <svg class="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-orange-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                                    @else
+                                        <svg class="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
+                                    @endif
+                                    
+                                    <select name="shift" onchange="this.form.submit()" class="text-xs border {{ $intern->shift === 'siang' ? 'border-orange-200 bg-orange-50 text-orange-600' : 'border-blue-200 bg-blue-50 text-blue-600' }} rounded-full pl-7 pr-6 py-1 font-bold appearance-none bg-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors m-0">
+                                        <option value="pagi" {{ $intern->shift === 'pagi' || is_null($intern->shift) ? 'selected' : '' }}>Pagi</option>
+                                        <option value="siang" {{ $intern->shift === 'siang' ? 'selected' : '' }}>Siang</option>
+                                    </select>
+                                    
+                                    <svg class="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none {{ $intern->shift === 'siang' ? 'text-orange-600' : 'text-blue-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </form>
                         </td>
                         <td class="px-6 py-4">
                             @if($intern->internship_start_date && $intern->internship_end_date)
@@ -113,8 +176,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                            Belum ada intern terdaftar.
+                        <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                            @if(request('search') || request('shift'))
+                                Tidak ada data intern yang sesuai dengan filter/pencarian Anda.
+                            @else
+                                Belum ada intern terdaftar.
+                            @endif
                         </td>
                     </tr>
                     @endforelse
@@ -322,6 +389,13 @@
                                     <input type="date" name="internship_end_date" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 </div>
                             </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Shift Magang</label>
+                                <select name="shift" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="pagi">Pagi (08:00 - 12:00)</option>
+                                    <option value="siang">Siang (12:00 - 17:00)</option>
+                                </select>
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis Magang</label>
@@ -414,6 +488,13 @@
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Selesai</label>
                                 <input type="date" name="internship_end_date" id="edit-end-date" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Shift Magang</label>
+                            <select name="shift" id="edit-shift" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="pagi">Pagi (08:00 - 12:00)</option>
+                                <option value="siang">Siang (12:00 - 17:00)</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Mentor / Pembimbing</label>
@@ -566,6 +647,7 @@
         filterMentors('edit-division', 'edit-mentor');
         document.getElementById('edit-start-date').value = intern.internship_start_date ? intern.internship_start_date.split('T')[0] : '';
         document.getElementById('edit-end-date').value = intern.internship_end_date ? intern.internship_end_date.split('T')[0] : '';
+        document.getElementById('edit-shift').value = intern.shift || 'pagi';
         document.getElementById('edit-mentor').value = intern.mentor_id || '';
         document.getElementById('editInternModal').classList.remove('hidden');
     }
@@ -625,6 +707,53 @@
             }
         }
         return true;
+    }
+
+    // Bulk Action Logic
+    function toggleAllCheckboxes(source) {
+        const checkboxes = document.querySelectorAll('.intern-checkbox');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+        updateBulkActionUI();
+    }
+
+    function updateBulkActionUI() {
+        const checkboxes = document.querySelectorAll('.intern-checkbox:checked');
+        const count = checkboxes.length;
+        const actionBar = document.getElementById('bulk-action-bar');
+        const countSpan = document.getElementById('selected-count');
+        
+        if (count > 0) {
+            countSpan.textContent = count;
+            actionBar.classList.remove('hidden');
+            actionBar.classList.add('flex');
+        } else {
+            actionBar.classList.add('hidden');
+            actionBar.classList.remove('flex');
+            document.getElementById('selectAllInterns').checked = false;
+        }
+    }
+
+    function submitBulkShift(shiftType) {
+        const checkboxes = document.querySelectorAll('.intern-checkbox:checked');
+        if (checkboxes.length === 0) return;
+        
+        const formId = shiftType === 'pagi' ? 'bulk-form-pagi' : 'bulk-form-siang';
+        const form = document.getElementById(formId);
+        
+        // Remove old hidden inputs if any
+        form.querySelectorAll('.dyn-input').forEach(el => el.remove());
+        
+        // Add new hidden inputs for each selected ID
+        checkboxes.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'intern_ids[]';
+            input.value = cb.value;
+            input.className = 'dyn-input';
+            form.appendChild(input);
+        });
+        
+        form.submit();
     }
 </script>
 @endsection

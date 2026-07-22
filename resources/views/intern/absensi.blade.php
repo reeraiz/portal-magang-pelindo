@@ -14,8 +14,9 @@
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-white">{{ Auth::user()->name }}</h3>
-                    <div class="flex flex-wrap items-center gap-3 mt-1.5">
+                    <div class="flex flex-col gap-1 mt-1.5">
                         <p class="text-sm text-blue-200 font-medium">Divisi: {{ Auth::user()->division ?? 'Belum diatur' }}</p>
+                        <p class="text-sm text-blue-200 font-medium">Shift: {{ Auth::user()->shift === 'siang' ? 'Siang (12:00 - 17:00)' : 'Pagi (08:00 - 12:00)' }}</p>
                     </div>
                 </div>
             </div>

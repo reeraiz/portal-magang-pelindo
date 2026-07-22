@@ -317,6 +317,7 @@ class AdminController extends Controller
     public function interns(Request $request)
     {
         $search = $request->input('search');
+        $shiftFilter = $request->input('shift');
 
         $query = User::where('role', 'intern')->withCount(['attendances', 'logbooks']);
         
@@ -327,6 +328,16 @@ class AdminController extends Controller
                   ->orWhere('division', 'like', "%{$search}%")
                   ->orWhere('intern_id', 'like', "%{$search}%");
             });
+        }
+
+        if ($shiftFilter) {
+            if ($shiftFilter === 'pagi') {
+                $query->where(function ($q) {
+                    $q->where('shift', 'pagi')->orWhereNull('shift');
+                });
+            } else {
+                $query->where('shift', $shiftFilter);
+            }
         }
 
         $this->applyMentorScope($query, 'self');
@@ -364,15 +375,35 @@ class AdminController extends Controller
             'internship_start_date' => 'nullable|date',
             'internship_end_date' => 'nullable|date|after_or_equal:internship_start_date',
             'mentor_id' => 'nullable|exists:users,id',
+            'shift' => 'nullable|in:pagi,siang',
         ]);
 
         $query = User::where('id', $id)->where('role', 'intern');
         $this->applyMentorScope($query, 'self');
         $intern = $query->firstOrFail();
 
-        $intern->update($request->only(['division', 'internship_start_date', 'internship_end_date', 'mentor_id']));
+        $intern->update($request->only(['division', 'internship_start_date', 'internship_end_date', 'mentor_id', 'shift']));
 
         return redirect()->back()->with('status', 'Data intern berhasil diupdate.');
+    }
+
+    /**
+     * Update shift intern secara massal.
+     */
+    public function bulkUpdateShift(Request $request)
+    {
+        $request->validate([
+            'intern_ids' => 'required|array',
+            'intern_ids.*' => 'exists:users,id',
+            'shift' => 'required|in:pagi,siang',
+        ]);
+
+        $query = User::whereIn('id', $request->intern_ids)->where('role', 'intern');
+        $this->applyMentorScope($query, 'self');
+        
+        $updatedCount = $query->update(['shift' => $request->shift]);
+
+        return redirect()->back()->with('status', $updatedCount . ' intern berhasil diubah ke shift ' . ucfirst($request->shift) . '.');
     }
 
     /**
@@ -437,6 +468,7 @@ class AdminController extends Controller
             'education_level_id' => 'nullable|exists:education_levels,id',
             'university_id' => 'nullable|exists:universities,id',
             'gender_id' => 'nullable|exists:genders,id',
+            'shift' => 'nullable|in:pagi,siang',
             'password' => 'nullable|string|min:8',
         ]);
 
@@ -454,6 +486,7 @@ class AdminController extends Controller
             'education_level_id' => $request->role === 'intern' ? $request->education_level_id : null,
             'university_id' => $request->role === 'intern' ? $request->university_id : null,
             'gender_id' => $request->role === 'intern' ? $request->gender_id : null,
+            'shift' => $request->role === 'intern' ? ($request->shift ?? 'pagi') : null,
             'password' => Hash::make($password),
         ]);
 
