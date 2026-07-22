@@ -81,7 +81,6 @@
                         <th class="px-6 py-4">Jam Pulang</th>
                         <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4">Validasi</th>
-                        <th class="px-6 py-4">Bukti & Lokasi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -145,30 +144,10 @@
                                 <span class="text-gray-400">-</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="flex flex-col gap-2">
-                                @if($att->photo_in)
-                                    <a href="{{ asset('storage/' . $att->photo_in) }}" target="_blank" class="text-blue-500 hover:text-blue-700 text-[11px] font-semibold flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        Selfie Masuk
-                                    </a>
-                                @endif
-                                @if($att->photo_out)
-                                    <a href="{{ asset('storage/' . $att->photo_out) }}" target="_blank" class="text-orange-500 hover:text-orange-700 text-[11px] font-semibold flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        Selfie Pulang
-                                    </a>
-                                @endif
-                                
-                                @if(!$att->photo_in && !$att->photo_out && !$att->lat_in && !$att->lat_out)
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            </div>
-                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                             <div class="flex flex-col items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                 Belum ada data kehadiran.
