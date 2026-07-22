@@ -1,8 +1,10 @@
-const CACHE_NAME = 'pelindo-magang-v2';
+const CACHE_NAME = 'pelindo-magang-v3';
 const urlsToCache = [
   '/',
   '/login',
   '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
   '/build/assets/app.css',
   '/build/assets/app.js'
 ];

@@ -42,6 +42,7 @@ class AttendanceController extends Controller
             $attendance->location = $request->location ?? 'WFO - Kantor Pusat';
 
             $isFriday = $now->isFriday();
+
             $targetMasukHour = $isFriday ? 7 : 8;
             $targetMasukMinute = $isFriday ? 30 : 0;
             $targetMasukStr = $isFriday ? '07:30:00' : '08:00:00';
@@ -53,10 +54,12 @@ class AttendanceController extends Controller
                 $selisih = (int) round(abs($now->diffInMinutes($jamMasuk)));
                 $attendance->notes = 'Terlambat '.$selisih.' menit';
             }
-        } elseif ($type === 'check_out' && ! $attendance->check_out) {
+        } elseif ($type === 'check_out' && $attendance->check_in && ! $attendance->check_out) {
             $attendance->check_out = $now->format('H:i:s');
+            
             $isFriday = $now->isFriday();
             $targetPulangStr = $isFriday ? '16:30:00' : '17:00:00';
+            
             if ($now->format('H:i:s') < $targetPulangStr) {
                 $attendance->notes = 'Terlalu Cepat Pulang';
             }

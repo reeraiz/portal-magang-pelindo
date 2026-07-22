@@ -14,7 +14,9 @@
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-white">{{ Auth::user()->name }}</h3>
-                    <p class="text-sm text-blue-200 font-medium mt-1">Divisi: {{ Auth::user()->division ?? 'Belum diatur' }}</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-1.5">
+                        <p class="text-sm text-blue-200 font-medium">Divisi: {{ Auth::user()->division ?? 'Belum diatur' }}</p>
+                    </div>
                 </div>
             </div>
 

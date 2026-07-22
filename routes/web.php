@@ -48,6 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/logbook/print', [AdminController::class, 'printLogbook'])->name('logbook.print');
         Route::get('/interns', [AdminController::class, 'interns'])->name('interns');
         Route::post('/interns/certificate/send', [AdminController::class, 'sendCertificate'])->name('certificate.send');
+        
+        // Shift Management
 
         Route::post('/verify-absensi/{id}', [AdminController::class, 'verifyAbsensi'])->name('verify.absensi')->middleware('throttle:30,1');
         Route::post('/verify-leave/{id}', [LeaveController::class, 'verify'])->name('verify.leave')->middleware('throttle:30,1');

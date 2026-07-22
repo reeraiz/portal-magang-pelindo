@@ -15,7 +15,7 @@
         <!-- PWA Support -->
         <link rel="manifest" href="/manifest.json">
         <meta name="theme-color" content="#0A1128">
-        <link rel="apple-touch-icon" href="/build/icons/icon-192x192.png">
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
