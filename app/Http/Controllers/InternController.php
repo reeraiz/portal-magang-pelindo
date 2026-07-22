@@ -89,23 +89,32 @@ class InternController extends Controller
             return redirect()->back()->withErrors(['error' => 'Anda sudah mengajukan izin/sakit hari ini, tidak dapat melakukan absensi.']);
         }
 
+        $photoPath = null;
+        if ($request->filled('photo')) {
+            $image_parts = explode(";base64,", $request->photo);
+            if (count($image_parts) == 2) {
+                $image_base64 = base64_decode($image_parts[1]);
+                $fileName = 'attendance_' . Auth::id() . '_' . $now->format('Ymd_His') . '_' . $type . '.jpg';
+                $filePath = 'attendances/' . $fileName;
+                \Illuminate\Support\Facades\Storage::disk('public')->put($filePath, $image_base64);
+                $photoPath = $filePath;
+            }
+        }
+
         if ($type === 'check_in' && ! $attendance->check_in) {
             $attendance->check_in = $now->format('H:i:s');
             $attendance->status = 'verified';
             $attendance->location = $request->location ?? 'WFO - Kantor Pusat';
+            
+            if ($photoPath) $attendance->photo_in = $photoPath;
+            if ($request->filled('lat')) $attendance->lat_in = $request->lat;
+            if ($request->filled('lng')) $attendance->lng_in = $request->lng;
 
-            $shift = Auth::user()->shift ?? 'pagi';
             $isFriday = $now->isFriday();
-
-            if ($shift === 'siang') {
-                $targetMasukStr = '12:00:00';
-                $jamMasuk = Carbon::createFromTime(12, 0, 0, 'Asia/Makassar');
-            } else {
-                $targetMasukHour = $isFriday ? 7 : 8;
-                $targetMasukMinute = $isFriday ? 30 : 0;
-                $targetMasukStr = $isFriday ? '07:30:00' : '08:00:00';
-                $jamMasuk = Carbon::createFromTime($targetMasukHour, $targetMasukMinute, 0, 'Asia/Makassar');
-            }
+            $targetMasukHour = $isFriday ? 7 : 8;
+            $targetMasukMinute = $isFriday ? 30 : 0;
+            $targetMasukStr = $isFriday ? '07:30:00' : '08:00:00';
+            $jamMasuk = Carbon::createFromTime($targetMasukHour, $targetMasukMinute, 0, 'Asia/Makassar');
 
             if ($now->format('H:i:s') <= $targetMasukStr) {
                 $attendance->notes = 'Tepat Waktu';
@@ -116,14 +125,12 @@ class InternController extends Controller
         } elseif ($type === 'check_out' && $attendance->check_in && ! $attendance->check_out) {
             $attendance->check_out = $now->format('H:i:s');
             
-            $shift = Auth::user()->shift ?? 'pagi';
+            if ($photoPath) $attendance->photo_out = $photoPath;
+            if ($request->filled('lat')) $attendance->lat_out = $request->lat;
+            if ($request->filled('lng')) $attendance->lng_out = $request->lng;
+            
             $isFriday = $now->isFriday();
-
-            if ($shift === 'siang') {
-                $targetPulangStr = $isFriday ? '16:30:00' : '17:00:00';
-            } else {
-                $targetPulangStr = '12:00:00';
-            }
+            $targetPulangStr = $isFriday ? '16:30:00' : '17:00:00';
             
             if ($now->format('H:i:s') < $targetPulangStr) {
                 $attendance->notes = 'Terlalu Cepat Pulang';

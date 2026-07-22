@@ -124,28 +124,47 @@
                                 </a>
                             </div>
                             @endif
+
+                            @if($att->photo_in)
+                            <div class="mt-2">
+                                <a href="{{ asset('storage/' . $att->photo_in) }}" target="_blank" class="text-blue-500 hover:text-blue-700 text-[11px] font-semibold flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    Selfie Masuk
+                                </a>
+                            </div>
+                            @endif
+
+                            @if($att->photo_out)
+                            <div class="mt-2">
+                                <a href="{{ asset('storage/' . $att->photo_out) }}" target="_blank" class="text-orange-500 hover:text-orange-700 text-[11px] font-semibold flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    Selfie Pulang
+                                </a>
+                            </div>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
-                            @if($att->status === 'pending')
                             <div class="flex gap-2">
-                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menerima absensi/pengajuan izin ini?">
+                                @if(!in_array($att->status, ['verified', 'hadir', 'izin', 'sakit']))
+                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menerima absensi/pengajuan ini?">
                                     @csrf
                                     <input type="hidden" name="status" value="verified">
                                     <button type="submit" class="px-4 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-lg text-xs font-bold transition-colors shadow-sm">
                                         Terima
                                     </button>
                                 </form>
-                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menolak absensi/pengajuan izin ini?">
+                                @endif
+                                
+                                @if($att->status !== 'rejected')
+                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menolak absensi/pengajuan ini?">
                                     @csrf
                                     <input type="hidden" name="status" value="rejected">
                                     <button type="submit" class="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 hover:border-red-600 rounded-lg text-xs font-bold transition-colors shadow-sm">
                                         Tolak
                                     </button>
                                 </form>
+                                @endif
                             </div>
-                            @else
-                            <span class="text-xs text-gray-400 font-medium italic">Selesai</span>
-                            @endif
                         </td>
                     </tr>
                     @empty
