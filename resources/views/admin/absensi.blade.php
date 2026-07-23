@@ -48,6 +48,17 @@
                 <form method="GET" action="{{ route('admin.absensi') }}" class="flex flex-wrap items-center gap-2">
                     <input type="text" name="filter_name" placeholder="Cari nama intern..." class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 w-36 sm:w-48" value="{{ request('filter_name') }}">
                     <input type="date" name="filter_date" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500" value="{{ request('filter_date') }}">
+                    
+                    <select name="filter_division" id="filter_division" onchange="filterDepartments('filter_division', 'filter_department'); this.form.submit()" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="">Semua Divisi</option>
+                        @foreach($divisions as $div)
+                            <option value="{{ $div->name }}" {{ request('filter_division') == $div->name ? 'selected' : '' }}>{{ $div->name }}</option>
+                        @endforeach
+                    </select>
+                    
+                    <select name="filter_department" id="filter_department" data-selected="{{ request('filter_department') }}" onchange="this.form.submit()" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-[140px]">
+                        <option value="">Semua Departemen</option>
+                    </select>
                     <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">Filter</button>
                     @if(request('filter_date') || request('filter_name'))
                     <a href="{{ route('admin.absensi') }}" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">Reset</a>
@@ -87,7 +98,7 @@
                                 </div>
                                 <div>
                                     <p class="font-bold text-gray-800">{{ $att->user->name }}</p>
-                                    <p class="text-xs text-gray-500 font-medium">{{ $att->user->division ?? 'Belum diatur' }}</p>
+                                    <p class="text-xs text-gray-500">{{ $att->user->division ?? 'Tidak ada divisi' }} | {{ $att->user->department ?? 'Tidak ada departemen' }}</p>
                                 </div>
                             </div>
                         </td>
@@ -126,26 +137,27 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            @if($att->status === 'pending')
                             <div class="flex gap-2">
-                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menerima absensi/pengajuan izin ini?">
+                                @if(!in_array($att->status, ['verified', 'hadir', 'izin', 'sakit']))
+                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menerima absensi/pengajuan ini?">
                                     @csrf
                                     <input type="hidden" name="status" value="verified">
                                     <button type="submit" class="px-4 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 rounded-lg text-xs font-bold transition-colors shadow-sm">
                                         Terima
                                     </button>
                                 </form>
-                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menolak absensi/pengajuan izin ini?">
+                                @endif
+                                
+                                @if($att->status !== 'rejected')
+                                <form action="{{ route('admin.verify.absensi', $att->id) }}" method="POST" class="confirm-form" data-confirm-msg="Yakin ingin menolak absensi/pengajuan ini?">
                                     @csrf
                                     <input type="hidden" name="status" value="rejected">
                                     <button type="submit" class="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 hover:border-red-600 rounded-lg text-xs font-bold transition-colors shadow-sm">
                                         Tolak
                                     </button>
                                 </form>
+                                @endif
                             </div>
-                            @else
-                            <span class="text-xs text-gray-400 font-medium italic">Selesai</span>
-                            @endif
                         </td>
                     </tr>
                     @empty
@@ -164,4 +176,38 @@
         </div>
     </div>
 </div>
+
+<script>
+    const divisionsData = @json($divisions);
+
+    function filterDepartments(divisionSelectId, departmentSelectId) {
+        const divSelect = document.getElementById(divisionSelectId);
+        const deptSelect = document.getElementById(departmentSelectId);
+        const selectedDivName = divSelect.value;
+        const currentDept = deptSelect.getAttribute('data-selected') || deptSelect.value;
+        
+        deptSelect.innerHTML = '<option value="">Semua Departemen</option>';
+        
+        if (!selectedDivName) return;
+        
+        const selectedDiv = divisionsData.find(d => d.name === selectedDivName);
+        if (selectedDiv && selectedDiv.departments) {
+            selectedDiv.departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.name;
+                option.textContent = dept.name;
+                if (dept.name === currentDept) {
+                    option.selected = true;
+                }
+                deptSelect.appendChild(option);
+            });
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('filter_division').value) {
+            filterDepartments('filter_division', 'filter_department');
+        }
+    });
+</script>
 @endsection

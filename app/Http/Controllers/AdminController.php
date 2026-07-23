@@ -216,6 +216,16 @@ class AdminController extends Controller
                 $q->where('name', 'like', '%'.$request->filter_name.'%');
             });
         }
+        if ($request->filled('filter_division')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('division', $request->filter_division);
+            });
+        }
+        if ($request->filled('filter_department')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('department', $request->filter_department);
+            });
+        }
 
         $attendances = $query->orderBy('date', 'desc')->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
@@ -223,7 +233,8 @@ class AdminController extends Controller
         $totalIzin = (clone $query)->where('status', 'izin')->count();
         $totalPending = (clone $query)->where('status', 'pending')->count();
 
-        return view('admin.absensi', compact('attendances', 'totalHadir', 'totalIzin', 'totalPending'));
+        $divisions = \App\Models\Division::with('departments')->get();
+        return view('admin.absensi', compact('attendances', 'totalHadir', 'totalIzin', 'totalPending', 'divisions'));
     }
 
     /**
@@ -242,13 +253,24 @@ class AdminController extends Controller
                 $q->where('name', 'like', '%'.$request->filter_name.'%');
             });
         }
+        if ($request->filled('filter_division')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('division', $request->filter_division);
+            });
+        }
+        if ($request->filled('filter_department')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('department', $request->filter_department);
+            });
+        }
 
         $logbooks = $query->orderBy('date', 'desc')->orderBy('created_at', 'desc')->paginate(8)->withQueryString();
         $totalLogbooks = (clone $query)->count();
         $pendingReviews = (clone $query)->where('status', 'pending')->count();
         $approvedLogs = (clone $query)->where('status', 'verified')->count();
 
-        return view('admin.logbook', compact('logbooks', 'totalLogbooks', 'pendingReviews', 'approvedLogs'));
+        $divisions = \App\Models\Division::with('departments')->get();
+        return view('admin.logbook', compact('logbooks', 'totalLogbooks', 'pendingReviews', 'approvedLogs', 'divisions'));
     }
 
     /**
@@ -339,6 +361,12 @@ class AdminController extends Controller
                 $query->where('shift', $shiftFilter);
             }
         }
+        if ($request->filled('filter_division')) {
+            $query->where('division', $request->filter_division);
+        }
+        if ($request->filled('filter_department')) {
+            $query->where('department', $request->filter_department);
+        }
 
         $this->applyMentorScope($query, 'self');
         $interns = $query->orderBy('name')->paginate(10)->withQueryString();
@@ -348,7 +376,7 @@ class AdminController extends Controller
         } else {
             $mentors = User::where('role', 'pembimbing')->get();
         }
-        $divisions = Division::all();
+        $divisions = \App\Models\Division::with('departments')->get();
         $internshipTypes = InternshipType::all();
         $educationLevels = EducationLevel::all();
         $universities = University::orderBy('name')->get();
@@ -372,6 +400,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'division' => 'nullable|string|max:255',
+            'department' => 'nullable|string|max:255',
             'internship_start_date' => 'nullable|date',
             'internship_end_date' => 'nullable|date|after_or_equal:internship_start_date',
             'mentor_id' => 'nullable|exists:users,id',
@@ -382,7 +411,7 @@ class AdminController extends Controller
         $this->applyMentorScope($query, 'self');
         $intern = $query->firstOrFail();
 
-        $intern->update($request->only(['division', 'internship_start_date', 'internship_end_date', 'mentor_id', 'shift']));
+        $intern->update($request->only(['division', 'department', 'internship_start_date', 'internship_end_date', 'mentor_id', 'shift']));
 
         return redirect()->back()->with('status', 'Data intern berhasil diupdate.');
     }
@@ -413,6 +442,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'division' => 'nullable|string|max:255',
+            'department' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
         ]);
 
@@ -421,7 +451,7 @@ class AdminController extends Controller
             abort(403, 'Anda hanya dapat mengubah data profil Anda sendiri.');
         }
         $mentor = $query->firstOrFail();
-        $mentor->update($request->only(['division', 'name']));
+        $mentor->update($request->only(['division', 'department', 'name']));
 
         return redirect()->back()->with('status', 'Data pembimbing berhasil diupdate.');
     }
@@ -461,6 +491,7 @@ class AdminController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'role' => 'required|in:intern,pembimbing,admin',
             'division' => 'nullable|string|max:255',
+            'department' => 'nullable|string|max:255',
             'mentor_id' => 'nullable|exists:users,id',
             'internship_start_date' => 'nullable|date',
             'internship_end_date' => 'nullable|date|after_or_equal:internship_start_date',
@@ -479,6 +510,7 @@ class AdminController extends Controller
             'email' => $request->email,
             'role' => $request->role,
             'division' => $request->division,
+            'department' => $request->department,
             'mentor_id' => $request->role === 'intern' ? $request->mentor_id : null,
             'internship_start_date' => $request->role === 'intern' ? $request->internship_start_date : null,
             'internship_end_date' => $request->role === 'intern' ? $request->internship_end_date : null,

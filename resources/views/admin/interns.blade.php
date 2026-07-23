@@ -28,18 +28,33 @@
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 class="font-bold text-gray-800">Daftar Intern</h3>
             <form action="{{ route('admin.interns') }}" method="GET" class="flex flex-wrap items-center gap-2">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, email, divisi..." class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 w-48 sm:w-64">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, email..." class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 w-48 sm:w-64">
+                
                 <div class="relative">
-                    <select name="shift" onchange="this.form.submit()" class="text-sm border border-gray-200 rounded-lg pl-9 pr-8 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white min-w-[140px]">
+                    <select name="filter_division" id="filter_division" onchange="filterDepartments('filter_division', 'filter_department'); this.form.submit()" class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-[140px]">
+                        <option value="">Semua Divisi</option>
+                        @foreach($divisions as $div)
+                            <option value="{{ $div->name }}" {{ request('filter_division') == $div->name ? 'selected' : '' }}>{{ $div->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="relative">
+                    <select name="filter_department" id="filter_department" data-selected="{{ request('filter_department') }}" onchange="this.form.submit()" class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-[140px]">
+                        <option value="">Semua Departemen</option>
+                    </select>
+                </div>
+
+                <div class="relative">
+                    <select name="shift" onchange="this.form.submit()" class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-[140px]">
                         <option value="">Semua Shift</option>
                         <option value="pagi" {{ request('shift') === 'pagi' ? 'selected' : '' }}>Shift Pagi</option>
                         <option value="siang" {{ request('shift') === 'siang' ? 'selected' : '' }}>Shift Siang</option>
                     </select>
-                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <svg class="w-4 h-4 text-gray-400 absolute right-3 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
+                
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">Filter</button>
-                @if(request('search') || request('shift'))
+                @if(request('search') || request('shift') || request('filter_division') || request('filter_department'))
                 <a href="{{ route('admin.interns') }}" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors">Reset</a>
                 @endif
             </form>
@@ -80,7 +95,7 @@
                             </div>
                         </th>
                         <th class="px-6 py-4">Nama</th>
-                        <th class="px-6 py-4">Divisi</th>
+                        <th class="px-6 py-4">Divisi & Departemen</th>
                         <th class="px-6 py-4">Shift</th>
                         <th class="px-6 py-4">Periode Magang</th>
                         <th class="px-6 py-4">Mentor</th>
@@ -106,7 +121,8 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="text-sm text-gray-700 font-medium">{{ $intern->division ?? '-' }}</span>
+                            <div class="text-sm text-gray-700 font-medium">{{ $intern->division ?? '-' }}</div>
+                            <div class="text-xs text-gray-500">{{ $intern->department ?? '-' }}</div>
                         </td>
                         <td class="px-6 py-4">
                             <form action="{{ route('admin.interns.update', $intern->id) }}" method="POST" class="m-0">
@@ -358,14 +374,22 @@
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Divisi / Departemen</label>
-                            <select name="division" id="create-division" onchange="filterMentors('create-division', 'create-mentor')" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                <option value="">-- Pilih Divisi / Departemen --</option>
-                                @foreach($divisions as $div)
-                                    <option value="{{ $div->name }}">{{ $div->name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Divisi</label>
+                                <select name="division" id="create-division" onchange="filterMentors('create-division', 'create-mentor'); filterDepartments('create-division', 'create-department');" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">-- Pilih Divisi --</option>
+                                    @foreach($divisions as $div)
+                                        <option value="{{ $div->name }}">{{ $div->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Departemen</label>
+                                <select name="department" id="create-department" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">-- Pilih Departemen --</option>
+                                </select>
+                            </div>
                         </div>
                         <div id="intern-fields-container" class="space-y-4">
                             <div>
@@ -470,14 +494,22 @@
                     <h3 class="text-lg leading-6 font-bold text-gray-900 mb-1">Edit Data Intern</h3>
                     <p class="text-sm text-gray-500 mb-4" id="edit-intern-name"></p>
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Divisi / Departemen</label>
-                            <select name="division" id="edit-division" onchange="filterMentors('edit-division', 'edit-mentor')" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                <option value="">Pilih Divisi / Departemen</option>
-                                @foreach($divisions as $div)
-                                    <option value="{{ $div->name }}">{{ $div->name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Divisi</label>
+                                <select name="division" id="edit-division" onchange="filterMentors('edit-division', 'edit-mentor'); filterDepartments('edit-division', 'edit-department');" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">-- Pilih Divisi --</option>
+                                    @foreach($divisions as $div)
+                                        <option value="{{ $div->name }}">{{ $div->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Departemen</label>
+                                <select name="department" id="edit-department" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">-- Pilih Departemen --</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -573,14 +605,22 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
                             <input type="text" name="name" id="edit-mentor-name" required class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Pilih Divisi / Departemen</label>
-                            <select name="division" id="edit-mentor-division" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                <option value="">-- Pilih Divisi / Departemen --</option>
-                                @foreach($divisions as $div)
-                                    <option value="{{ $div->name }}">{{ $div->name }}</option>
-                                @endforeach
-                            </select>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Pilih Divisi</label>
+                                <select name="division" id="edit-mentor-division" onchange="filterDepartments('edit-mentor-division', 'edit-mentor-department');" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">-- Pilih Divisi --</option>
+                                    @foreach($divisions as $div)
+                                        <option value="{{ $div->name }}">{{ $div->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Pilih Departemen</label>
+                                <select name="department" id="edit-mentor-department" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">-- Pilih Departemen --</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -644,6 +684,8 @@
         document.getElementById('editInternForm').action = '{{ url("admin/interns") }}/' + intern.id;
         document.getElementById('edit-intern-name').textContent = intern.name + ' (' + intern.email + ')';
         document.getElementById('edit-division').value = intern.division || '';
+        filterDepartments('edit-division', 'edit-department');
+        document.getElementById('edit-department').value = intern.department || '';
         filterMentors('edit-division', 'edit-mentor');
         document.getElementById('edit-start-date').value = intern.internship_start_date ? intern.internship_start_date.split('T')[0] : '';
         document.getElementById('edit-end-date').value = intern.internship_end_date ? intern.internship_end_date.split('T')[0] : '';
@@ -661,6 +703,8 @@
         document.getElementById('edit-mentor-info').textContent = mentor.email;
         document.getElementById('edit-mentor-name').value = mentor.name || '';
         document.getElementById('edit-mentor-division').value = mentor.division || '';
+        filterDepartments('edit-mentor-division', 'edit-mentor-department');
+        document.getElementById('edit-mentor-department').value = mentor.department || '';
         document.getElementById('editMentorModal').classList.remove('hidden');
     }
 
@@ -755,5 +799,39 @@
         
         form.submit();
     }
+
+    const divisionsData = @json($divisions);
+
+    function filterDepartments(divisionSelectId, departmentSelectId) {
+        const divSelect = document.getElementById(divisionSelectId);
+        const deptSelect = document.getElementById(departmentSelectId);
+        const selectedDivName = divSelect.value;
+        const currentDept = deptSelect.getAttribute('data-selected') || deptSelect.value;
+        
+        // Kosongkan options departemen
+        deptSelect.innerHTML = '<option value="">-- Pilih Departemen --</option>';
+        
+        if (!selectedDivName) return;
+        
+        const selectedDiv = divisionsData.find(d => d.name === selectedDivName);
+        if (selectedDiv && selectedDiv.departments) {
+            selectedDiv.departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.name;
+                option.textContent = dept.name;
+                if (dept.name === currentDept) {
+                    option.selected = true;
+                }
+                deptSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Initialize department filters on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('filter_division').value) {
+            filterDepartments('filter_division', 'filter_department');
+        }
+    });
 </script>
 @endsection

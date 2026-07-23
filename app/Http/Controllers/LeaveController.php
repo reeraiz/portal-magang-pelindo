@@ -111,6 +111,18 @@ class LeaveController extends Controller
             });
         }
 
+        if ($request->filled('filter_division')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('division', $request->filter_division);
+            });
+        }
+
+        if ($request->filled('filter_department')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('department', $request->filter_department);
+            });
+        }
+
         $leaves = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
         $totalQuery = LeaveRequest::query();
@@ -119,7 +131,8 @@ class LeaveController extends Controller
         $pendingReviews = (clone $totalQuery)->where('status', 'pending')->count();
         $approvedLeaves = (clone $totalQuery)->where('status', 'approved')->count();
 
-        return view('admin.leaves', compact('leaves', 'totalLeaves', 'pendingReviews', 'approvedLeaves'));
+        $divisions = \App\Models\Division::with('departments')->get();
+        return view('admin.leaves', compact('leaves', 'totalLeaves', 'pendingReviews', 'approvedLeaves', 'divisions'));
     }
 
     /**

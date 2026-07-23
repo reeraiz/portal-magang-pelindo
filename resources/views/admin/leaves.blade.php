@@ -43,12 +43,24 @@
         <form method="GET" action="{{ route('admin.leaves') }}" class="flex flex-wrap items-center gap-2">
             <input type="text" name="filter_name" value="{{ request('filter_name') }}" placeholder="Cari nama intern..." class="text-sm border border-gray-200 rounded-xl px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
             <input type="date" name="filter_date" value="{{ request('filter_date') }}" class="text-sm border border-gray-200 rounded-xl px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+            
+            <select name="filter_division" id="filter_division" onchange="filterDepartments('filter_division', 'filter_department'); this.form.submit()" class="text-sm border border-gray-200 rounded-xl px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+                <option value="">Semua Divisi</option>
+                @foreach($divisions as $div)
+                    <option value="{{ $div->name }}" {{ request('filter_division') == $div->name ? 'selected' : '' }}>{{ $div->name }}</option>
+                @endforeach
+            </select>
+            
+            <select name="filter_department" id="filter_department" data-selected="{{ request('filter_department') }}" onchange="this.form.submit()" class="text-sm border border-gray-200 rounded-xl px-3 py-1.5 text-gray-600 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 min-w-[140px]">
+                <option value="">Semua Departemen</option>
+            </select>
             <button type="submit" class="px-4 py-1.5 bg-gray-800 text-white rounded-xl text-sm font-semibold hover:bg-gray-900 transition-colors cursor-pointer">Filter</button>
-            @if(request()->hasAny(['filter_date', 'filter_name']))
+            @if(request()->hasAny(['filter_date', 'filter_name', 'filter_division', 'filter_department']))
                 <a href="{{ route('admin.leaves') }}" class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">Reset</a>
             @endif
         </form>
     </div>
+
 
     <!-- Verification Table -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -179,4 +191,39 @@
         </div>
     </div>
 </div>
+</div>
+
+<script>
+    const divisionsData = @json($divisions);
+
+    function filterDepartments(divisionSelectId, departmentSelectId) {
+        const divSelect = document.getElementById(divisionSelectId);
+        const deptSelect = document.getElementById(departmentSelectId);
+        const selectedDivName = divSelect.value;
+        const currentDept = deptSelect.getAttribute('data-selected') || deptSelect.value;
+        
+        deptSelect.innerHTML = '<option value="">Semua Departemen</option>';
+        
+        if (!selectedDivName) return;
+        
+        const selectedDiv = divisionsData.find(d => d.name === selectedDivName);
+        if (selectedDiv && selectedDiv.departments) {
+            selectedDiv.departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.name;
+                option.textContent = dept.name;
+                if (dept.name === currentDept) {
+                    option.selected = true;
+                }
+                deptSelect.appendChild(option);
+            });
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('filter_division').value) {
+            filterDepartments('filter_division', 'filter_department');
+        }
+    });
+</script>
 @endsection
