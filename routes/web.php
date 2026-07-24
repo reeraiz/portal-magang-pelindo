@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/logbook/export', [AdminController::class, 'exportLogbook'])->name('logbook.export');
         Route::get('/logbook/print', [AdminController::class, 'printLogbook'])->name('logbook.print');
         Route::get('/interns', [AdminController::class, 'interns'])->name('interns');
+        Route::get('/interns/{id}/cv', [AdminController::class, 'generateCv'])->name('interns.cv');
         Route::post('/interns/certificate/send', [AdminController::class, 'sendCertificate'])->name('certificate.send');
         
         // Shift Management
@@ -66,6 +67,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin Only Routes
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+        Route::get('/master-data', [\App\Http\Controllers\MasterDataController::class, 'index'])->name('master-data');
+        Route::post('/master-data/{type}', [\App\Http\Controllers\MasterDataController::class, 'store'])->name('master-data.store');
+        Route::delete('/master-data/{type}/{id}', [\App\Http\Controllers\MasterDataController::class, 'destroy'])->name('master-data.destroy');
     });
 });
 

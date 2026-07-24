@@ -193,6 +193,10 @@
                                         Reset Password
                                     </button>
                                 </form>
+                                <a href="{{ route('admin.interns.cv', $intern->id) }}" target="_blank" class="px-3 py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white border border-purple-200 hover:border-purple-600 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1" title="Generate CV">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    Cetak CV
+                                </a>
                                 @if(auth()->user()->role === 'admin')
                                 <form action="{{ route('admin.users.destroy', $intern->id) }}" method="POST" class="confirm-form" data-confirm-msg="Anda yakin ingin MENGHAPUS akun {{ addslashes($intern->name) }} secara permanen? Semua data absensi dan logbook juga akan ikut terhapus!">
                                     @csrf
@@ -362,14 +366,14 @@
     </div>
 
 <!-- Create User Modal -->
-<div id="createUserModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+<div id="createUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm transition-opacity" onclick="closeCreateUser()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
             <form action="{{ route('admin.users.store') }}" method="POST">
                 @csrf
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 rounded-t-2xl">
                     <h3 class="text-lg leading-6 font-bold text-gray-900 mb-1">Buat User Baru</h3>
                     <p class="text-sm text-gray-500 mb-4">Tambahkan akun pengguna baru untuk Intern, Pembimbing, atau Admin.</p>
                     <div class="space-y-4">
@@ -377,9 +381,15 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
                             <input type="text" name="name" required class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Masukkan nama lengkap">
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
-                            <input type="email" name="email" required class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="email@domain.com">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                                <input type="email" name="email" required class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="email@domain.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Nomor Telepon (WA)</label>
+                                <input type="text" name="phone" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Contoh: 081234567890">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Role / Peran <span class="text-red-500">*</span></label>
@@ -456,7 +466,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">Asal Universitas / Sekolah</label>
                                     <select name="university_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
@@ -467,11 +477,48 @@
                                     </select>
                                 </div>
                                 <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun Pendidikan</label>
+                                    <div class="flex items-center space-x-2">
+                                        <input name="education_start_year" type="number" min="1900" max="2099" step="1" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Mulai">
+                                        <span class="text-gray-500">-</span>
+                                        <input name="education_end_year" type="number" min="1900" max="2099" step="1" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Selesai">
+                                    </div>
+                                </div>
+                                <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis Kelamin (Gender)</label>
                                     <select name="gender_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                        <option value="">-- Pilih Gender --</option>
-                                        @foreach($genders as $gender)
-                                            <option value="{{ $gender->id }}">{{ $gender->name }}</option>
+                                        <option value="">-- Pilih Jenis Kelamin --</option>
+                                        @foreach($genders as $gend)
+                                            <option value="{{ $gend->id }}">{{ $gend->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Fakultas</label>
+                                    <select name="faculty" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                        <option value="">-- Pilih Fakultas --</option>
+                                        @foreach($faculties as $fac)
+                                            <option value="{{ $fac->name }}">{{ $fac->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Jurusan</label>
+                                    <select name="major" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                        <option value="">-- Pilih Jurusan --</option>
+                                        @foreach($majors as $maj)
+                                            <option value="{{ $maj->name }}">{{ $maj->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Program Studi (Prodi)</label>
+                                    <select name="study_program" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                        <option value="">-- Pilih Prodi --</option>
+                                        @foreach($studyPrograms as $sp)
+                                            <option value="{{ $sp->name }}">{{ $sp->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -498,15 +545,15 @@
 </div>
 
 <!-- Edit Intern Modal -->
-<div id="editInternModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+<div id="editInternModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm transition-opacity" onclick="closeEditIntern()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
             <form id="editInternForm" method="POST">
                 @csrf
                 @method('PUT')
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 rounded-t-2xl">
                     <h3 class="text-lg leading-6 font-bold text-gray-900 mb-1">Edit Data Intern</h3>
                     <p class="text-sm text-gray-500 mb-4" id="edit-intern-name"></p>
                     <div class="space-y-4">
@@ -606,16 +653,16 @@
 </div>
 
 <!-- Edit Mentor Modal -->
-<div id="editMentorModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+<div id="editMentorModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm transition-opacity" onclick="closeEditMentor()"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
             <form id="editMentorForm" method="POST">
                 @csrf
                 @method('PUT')
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <h3 class="text-lg leading-6 font-bold text-gray-900 mb-1">Edit Divisi Pembimbing</h3>
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 rounded-t-2xl">
+                    <h3 class="text-lg leading-6 font-bold text-gray-900 mb-1">Edit Data Pembimbing</h3>
                     <p class="text-sm text-gray-500 mb-4" id="edit-mentor-info"></p>
                     <div class="space-y-4">
                         <div>

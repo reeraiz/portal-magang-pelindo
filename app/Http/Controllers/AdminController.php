@@ -381,6 +381,9 @@ class AdminController extends Controller
         $educationLevels = EducationLevel::all();
         $universities = University::orderBy('name')->get();
         $genders = Gender::all();
+        $faculties = \App\Models\Faculty::orderBy('name')->get();
+        $majors = \App\Models\Major::orderBy('name')->get();
+        $studyPrograms = \App\Models\StudyProgram::orderBy('name')->get();
 
         $allInternsQuery = User::where('role', 'intern')
                                ->whereNotNull('internship_end_date')
@@ -390,7 +393,22 @@ class AdminController extends Controller
         $this->applyMentorScope($allInternsQuery, 'self');
         $allInterns = $allInternsQuery->get();
 
-        return view('admin.interns', compact('interns', 'mentors', 'divisions', 'internshipTypes', 'educationLevels', 'universities', 'genders', 'allInterns'));
+        return view('admin.interns', compact(
+            'interns', 'mentors', 'divisions', 'internshipTypes', 'educationLevels', 
+            'universities', 'genders', 'faculties', 'majors', 'studyPrograms', 'allInterns'
+        ));
+    }
+
+    /**
+     * Generate CV untuk intern (tanpa periode magang).
+     */
+    public function generateCv($id)
+    {
+        $query = User::where('id', $id)->where('role', 'intern')->with(['university', 'gender', 'internshipType', 'educationLevel']);
+        $this->applyMentorScope($query, 'self');
+        $intern = $query->firstOrFail();
+
+        return view('admin.cv', compact('intern'));
     }
 
     /**
@@ -488,6 +506,7 @@ class AdminController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
             'email' => 'required|string|email|max:255|unique:users',
             'role' => 'required|in:intern,pembimbing,admin',
             'division' => 'nullable|string|max:255',
@@ -498,7 +517,12 @@ class AdminController extends Controller
             'internship_type_id' => 'nullable|exists:internship_types,id',
             'education_level_id' => 'nullable|exists:education_levels,id',
             'university_id' => 'nullable|exists:universities,id',
+            'faculty' => 'nullable|string|max:255',
+            'major' => 'nullable|string|max:255',
+            'study_program' => 'nullable|string|max:255',
             'gender_id' => 'nullable|exists:genders,id',
+            'education_start_year' => 'nullable|digits:4',
+            'education_end_year' => 'nullable|digits:4|gte:education_start_year',
             'shift' => 'nullable|in:pagi,siang,full_day',
             'password' => 'nullable|string|min:8',
         ]);
@@ -507,6 +531,7 @@ class AdminController extends Controller
 
         $user = User::create([
             'name' => $request->name,
+            'phone' => $request->phone,
             'email' => $request->email,
             'role' => $request->role,
             'division' => $request->division,
@@ -517,6 +542,11 @@ class AdminController extends Controller
             'internship_type_id' => $request->role === 'intern' ? $request->internship_type_id : null,
             'education_level_id' => $request->role === 'intern' ? $request->education_level_id : null,
             'university_id' => $request->role === 'intern' ? $request->university_id : null,
+            'faculty' => $request->role === 'intern' ? $request->faculty : null,
+            'major' => $request->role === 'intern' ? $request->major : null,
+            'study_program' => $request->role === 'intern' ? $request->study_program : null,
+            'education_start_year' => $request->role === 'intern' ? $request->education_start_year : null,
+            'education_end_year' => $request->role === 'intern' ? $request->education_end_year : null,
             'gender_id' => $request->role === 'intern' ? $request->gender_id : null,
             'shift' => $request->role === 'intern' ? ($request->shift ?? 'pagi') : null,
             'password' => Hash::make($password),

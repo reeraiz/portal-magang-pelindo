@@ -8,6 +8,9 @@ use App\Models\InternshipType;
 use App\Models\EducationLevel;
 use App\Models\University;
 use App\Models\Gender;
+use App\Models\Faculty;
+use App\Models\Major;
+use App\Models\StudyProgram;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +34,9 @@ class ProfileController extends Controller
             'educationLevels' => EducationLevel::orderBy('name')->get(),
             'universities' => University::orderBy('name')->get(),
             'genders' => Gender::orderBy('name')->get(),
+            'faculties' => Faculty::orderBy('name')->get(),
+            'majors' => Major::orderBy('name')->get(),
+            'studyPrograms' => StudyProgram::orderBy('name')->get(),
             'mailFromName' => $mailFromName,
             'mailFromAddress' => $mailFromAddress,
         ]);

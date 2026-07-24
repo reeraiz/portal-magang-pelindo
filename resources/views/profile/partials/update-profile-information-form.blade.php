@@ -36,10 +36,18 @@
             <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('avatar')" />
         </div>
 
-        <div>
-            <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
-            <input id="name" name="name" type="text" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" value="{{ old('name', $user->name) }}" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('name')" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
+                <input id="name" name="name" type="text" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" value="{{ old('name', $user->name) }}" required autofocus autocomplete="name" />
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('name')" />
+            </div>
+
+            <div>
+                <label for="phone" class="block text-sm font-semibold text-gray-700 mb-1">Nomor Telepon (WA)</label>
+                <input id="phone" name="phone" type="text" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" value="{{ old('phone', $user->phone) }}" placeholder="Contoh: 081234567890" autocomplete="tel" />
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('phone')" />
+            </div>
         </div>
 
         <div>
@@ -99,7 +107,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <div>
                 <label for="university_id" class="block text-sm font-semibold text-gray-700 mb-1">Asal Universitas / Sekolah</label>
                 <select id="university_id" name="university_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
@@ -114,6 +122,18 @@
                 <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('university_id')" />
             </div>
             <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun Pendidikan</label>
+                <div class="flex items-center space-x-2">
+                    <x-text-input id="education_start_year" name="education_start_year" type="number" min="1900" max="2099" step="1" class="w-full" :value="old('education_start_year', $user->education_start_year)" placeholder="Mulai" />
+                    <span class="text-gray-500">-</span>
+                    <x-text-input id="education_end_year" name="education_end_year" type="number" min="1900" max="2099" step="1" class="w-full" :value="old('education_end_year', $user->education_end_year)" placeholder="Selesai" />
+                </div>
+                <div class="flex flex-col">
+                    <x-input-error class="mt-1 text-xs text-red-600" :messages="$errors->get('education_start_year')" />
+                    <x-input-error class="mt-1 text-xs text-red-600" :messages="$errors->get('education_end_year')" />
+                </div>
+            </div>
+            <div>
                 <label for="gender_id" class="block text-sm font-semibold text-gray-700 mb-1">Jenis Kelamin (Gender)</label>
                 <select id="gender_id" name="gender_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                     <option value="">-- Pilih Jenis Kelamin --</option>
@@ -125,6 +145,71 @@
                     @endforeach
                 </select>
                 <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('gender_id')" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+                <label for="birth_place" class="block text-sm font-semibold text-gray-700 mb-1">Tempat Lahir</label>
+                <x-text-input id="birth_place" name="birth_place" type="text" class="mt-1 block w-full" :value="old('birth_place', $user->birth_place)" />
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('birth_place')" />
+            </div>
+            <div>
+                <label for="birth_date" class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Lahir</label>
+                <x-text-input id="birth_date" name="birth_date" type="date" class="mt-1 block w-full" :value="old('birth_date', optional($user->birth_date)->format('Y-m-d'))" />
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('birth_date')" />
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label for="address" class="block text-sm font-semibold text-gray-700 mb-1">Alamat</label>
+            <textarea id="address" name="address" rows="3" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">{{ old('address', $user->address) }}</textarea>
+            <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('address')" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+                <label for="religion" class="block text-sm font-semibold text-gray-700 mb-1">Agama</label>
+                <x-text-input id="religion" name="religion" type="text" class="mt-1 block w-full" :value="old('religion', $user->religion)" />
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('religion')" />
+            </div>
+            <div>
+                <label for="citizenship" class="block text-sm font-semibold text-gray-700 mb-1">Kewarganegaraan</label>
+                <x-text-input id="citizenship" name="citizenship" type="text" class="mt-1 block w-full" :value="old('citizenship', $user->citizenship)" />
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('citizenship')" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div>
+                <label for="faculty" class="block text-sm font-semibold text-gray-700 mb-1">Fakultas</label>
+                <select id="faculty" name="faculty" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <option value="">-- Pilih Fakultas --</option>
+                    @foreach($faculties as $fac)
+                        <option value="{{ $fac->name }}" {{ old('faculty', $user->faculty) == $fac->name ? 'selected' : '' }}>{{ $fac->name }}</option>
+                    @endforeach
+                </select>
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('faculty')" />
+            </div>
+            <div>
+                <label for="major" class="block text-sm font-semibold text-gray-700 mb-1">Jurusan</label>
+                <select id="major" name="major" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <option value="">-- Pilih Jurusan --</option>
+                    @foreach($majors as $maj)
+                        <option value="{{ $maj->name }}" {{ old('major', $user->major) == $maj->name ? 'selected' : '' }}>{{ $maj->name }}</option>
+                    @endforeach
+                </select>
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('major')" />
+            </div>
+            <div>
+                <label for="study_program" class="block text-sm font-semibold text-gray-700 mb-1">Program Studi (Prodi)</label>
+                <select id="study_program" name="study_program" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <option value="">-- Pilih Prodi --</option>
+                    @foreach($studyPrograms as $sp)
+                        <option value="{{ $sp->name }}" {{ old('study_program', $user->study_program) == $sp->name ? 'selected' : '' }}>{{ $sp->name }}</option>
+                    @endforeach
+                </select>
+                <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('study_program')" />
             </div>
         </div>
         @endif

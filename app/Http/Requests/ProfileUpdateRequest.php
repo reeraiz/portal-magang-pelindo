@@ -19,6 +19,7 @@ class ProfileUpdateRequest extends FormRequest
         return [
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'email' => [
                 'required',
                 'string',
@@ -33,7 +34,17 @@ class ProfileUpdateRequest extends FormRequest
             'internship_type_id' => ['nullable', 'exists:internship_types,id'],
             'education_level_id' => ['nullable', 'exists:education_levels,id'],
             'university_id' => ['nullable', 'exists:universities,id'],
+            'faculty' => ['nullable', 'string', 'max:255'],
+            'major' => ['nullable', 'string', 'max:255'],
+            'study_program' => ['nullable', 'string', 'max:255'],
             'gender_id' => ['nullable', 'exists:genders,id'],
+            'birth_place' => ['nullable', 'string', 'max:255'],
+            'birth_date' => ['nullable', 'date'],
+            'address' => ['nullable', 'string'],
+            'religion' => ['nullable', 'string', 'max:255'],
+            'citizenship' => ['nullable', 'string', 'max:255'],
+            'education_start_year' => ['nullable', 'digits:4'],
+            'education_end_year' => ['nullable', 'digits:4', 'gte:education_start_year'],
         ];
     }
 }
