@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/interns/export/pdf', [ExportController::class, 'exportPdf'])->name('interns.export.pdf');
         Route::get('/interns/{id}/cv', [AdminController::class, 'generateCv'])->name('interns.cv');
         Route::post('/interns/certificate/send', [AdminController::class, 'sendCertificate'])->name('certificate.send');
+        Route::post('/interns/certificate/review-skripsi', [AdminController::class, 'reviewSkripsi'])->name('certificate.review-skripsi');
         
         // Shift Management
         Route::post('/interns/bulk-shift', [AdminController::class, 'bulkUpdateShift'])->name('interns.bulk-shift');
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/skripsi', [ProfileController::class, 'uploadSkripsi'])->name('profile.skripsi.upload');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

@@ -642,6 +642,34 @@ class AdminController extends Controller
     }
 
     /**
+     * Review laporan akhir/skripsi intern (Approve/Reject).
+     */
+    public function reviewSkripsi(Request $request)
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Hanya Admin yang dapat mereview laporan.');
+        }
+
+        $request->validate([
+            'intern_id' => 'required|exists:users,id',
+            'status' => 'required|in:approved,rejected',
+            'rejection_reason' => 'nullable|string|max:1000'
+        ]);
+
+        $intern = User::where('role', 'intern')->findOrFail($request->intern_id);
+        
+        $intern->skripsi_status = $request->status;
+        $intern->skripsi_rejection_reason = $request->status === 'rejected' ? $request->rejection_reason : null;
+        $intern->save();
+
+        $message = $request->status === 'approved' 
+            ? 'Laporan Akhir/Skripsi berhasil disetujui.' 
+            : 'Laporan Akhir/Skripsi telah ditolak.';
+
+        return redirect()->back()->with('status', $message);
+    }
+
+    /**
      * Upload dan kirim sertifikat magang.
      */
     public function sendCertificate(Request $request)
@@ -662,6 +690,24 @@ class AdminController extends Controller
         ]);
 
         $intern = User::where('role', 'intern')->findOrFail($request->intern_id);
+
+        // Validasi 1: Masa magang sudah selesai
+        if ($intern->internship_end_date && $intern->internship_end_date > now()->format('Y-m-d')) {
+            return redirect()->back()->withErrors(['certificate' => 'Gagal: Masa magang peserta belum selesai. Sertifikat hanya dapat dikirim jika periode magang telah berakhir.']);
+        }
+
+        // Validasi 2: Logbook minimal 22 hari terisi (dan diverifikasi)
+        $verifiedLogbooksCount = $intern->logbooks()->where('status', 'verified')->count();
+        if ($verifiedLogbooksCount < 22) {
+            return redirect()->back()->withErrors(['certificate' => 'Gagal: Peserta belum memenuhi syarat minimal 22 hari kehadiran/logbook (saat ini: ' . $verifiedLogbooksCount . ' hari).']);
+        }
+
+        // Validasi 3: Khusus Magenta & Kemnaker, harus upload skripsi dan disetujui
+        if ($intern->internshipType && in_array(strtolower($intern->internshipType->name), ['magenta', 'kemnaker'])) {
+            if ($intern->skripsi_status !== 'approved') {
+                return redirect()->back()->withErrors(['certificate' => 'Gagal: Peserta program ' . $intern->internshipType->name . ' wajib mengunggah Laporan Akhir/Skripsi dan harus disetujui oleh Admin terlebih dahulu.']);
+            }
+        }
 
         $file = $request->file('certificate');
         $fileName = 'Sertifikat_Magang_' . Str::slug($intern->name) . '.' . $file->getClientOriginalExtension();

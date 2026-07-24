@@ -202,6 +202,11 @@
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                     Cetak CV
                                 </a>
+                                @if($intern->skripsi_status === 'pending')
+                                <button type="button" onclick="openReviewSkripsiModal({{ $intern->id }}, '{{ addslashes($intern->name) }}', '{{ asset('storage/' . $intern->skripsi_file_path) }}')" class="px-3 py-1.5 bg-yellow-50 text-yellow-700 hover:bg-yellow-600 hover:text-white border border-yellow-200 hover:border-yellow-600 rounded-lg text-xs font-bold transition-colors shadow-sm animate-pulse">
+                                    Review Laporan
+                                </button>
+                                @endif
                                 @if(auth()->user()->role === 'admin')
                                 <form action="{{ route('admin.users.destroy', $intern->id) }}" method="POST" class="confirm-form" data-confirm-msg="Anda yakin ingin MENGHAPUS akun {{ addslashes($intern->name) }} secara permanen? Semua data absensi dan logbook juga akan ikut terhapus!">
                                     @csrf
@@ -369,6 +374,57 @@
             </form>
         </div>
     </div>
+
+<!-- Review Skripsi Modal -->
+<div id="reviewSkripsiModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm transition-opacity" onclick="closeReviewSkripsiModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl w-full">
+            <form action="{{ route('admin.certificate.review-skripsi') }}" method="POST">
+                @csrf
+                <input type="hidden" name="intern_id" id="reviewSkripsiInternId">
+                <input type="hidden" name="status" id="reviewSkripsiStatus">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 rounded-t-2xl">
+                    <h3 class="text-lg leading-6 font-bold text-gray-900 mb-1" id="reviewSkripsiTitle">Review Laporan/Skripsi</h3>
+                    <p class="text-sm text-gray-500 mb-4">Silakan tinjau file laporan akhir yang diunggah oleh peserta magang.</p>
+                    
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4 text-center">
+                        <p class="text-sm text-gray-600 mb-3">Klik tombol di bawah untuk melihat file PDF yang diunggah.</p>
+                        <a href="#" id="reviewSkripsiFileLink" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-xl text-sm font-bold transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            Lihat Dokumen
+                        </a>
+                    </div>
+
+                    <div id="reviewSkripsiRejectForm" class="hidden mt-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Alasan Penolakan (Opsional)</label>
+                        <textarea name="rejection_reason" rows="3" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors" placeholder="Tuliskan mengapa laporan ini ditolak..."></textarea>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-2xl" id="reviewSkripsiButtons">
+                    <button type="button" onclick="confirmReviewSkripsi('approved')" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                        Setujui
+                    </button>
+                    <button type="button" onclick="showRejectForm()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                        Tolak
+                    </button>
+                    <button type="button" onclick="closeReviewSkripsiModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-transparent px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                        Batal
+                    </button>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 hidden sm:flex sm:flex-row-reverse rounded-b-2xl" id="reviewSkripsiSubmitButtons">
+                    <button type="button" onclick="confirmReviewSkripsi('rejected')" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                        Kirim Penolakan
+                    </button>
+                    <button type="button" onclick="hideRejectForm()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-transparent px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                        Kembali
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- Create User Modal -->
 <div id="createUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
@@ -729,6 +785,38 @@
 
     function closeEditIntern() {
         document.getElementById('editInternModal').classList.add('hidden');
+    }
+
+    // Review Skripsi Modal functions
+    function openReviewSkripsiModal(id, name, fileUrl) {
+        document.getElementById('reviewSkripsiInternId').value = id;
+        document.getElementById('reviewSkripsiTitle').textContent = `Review Laporan: ${name}`;
+        document.getElementById('reviewSkripsiFileLink').href = fileUrl;
+        hideRejectForm();
+        document.getElementById('reviewSkripsiModal').classList.remove('hidden');
+    }
+
+    function closeReviewSkripsiModal() {
+        document.getElementById('reviewSkripsiModal').classList.add('hidden');
+    }
+
+    function showRejectForm() {
+        document.getElementById('reviewSkripsiRejectForm').classList.remove('hidden');
+        document.getElementById('reviewSkripsiButtons').classList.add('hidden');
+        document.getElementById('reviewSkripsiSubmitButtons').classList.remove('hidden');
+        document.getElementById('reviewSkripsiSubmitButtons').classList.add('sm:flex');
+    }
+
+    function hideRejectForm() {
+        document.getElementById('reviewSkripsiRejectForm').classList.add('hidden');
+        document.getElementById('reviewSkripsiButtons').classList.remove('hidden');
+        document.getElementById('reviewSkripsiSubmitButtons').classList.add('hidden');
+        document.getElementById('reviewSkripsiSubmitButtons').classList.remove('sm:flex');
+    }
+
+    function confirmReviewSkripsi(status) {
+        document.getElementById('reviewSkripsiStatus').value = status;
+        document.querySelector('#reviewSkripsiModal form').submit();
     }
 
     function openEditMentor(mentor) {

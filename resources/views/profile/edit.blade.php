@@ -45,6 +45,14 @@
                 </div>
             </div>
 
+            @if(auth()->user()->role === 'intern' && auth()->user()->internshipType && in_array(strtolower(auth()->user()->internshipType->name), ['magenta', 'kemnaker']))
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+                <div class="max-w-2xl relative z-10">
+                    @include('profile.partials.upload-skripsi-form')
+                </div>
+            </div>
+            @endif
+
             @if(auth()->user()->role === 'admin')
             <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="max-w-2xl relative z-10">

@@ -57,13 +57,42 @@ class ProfileController extends Controller
             $request->user()->avatar = $avatarPath;
         }
 
+
+
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
         }
 
         $request->user()->save();
 
+
+
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Upload Laporan Akhir / Skripsi.
+     */
+    public function uploadSkripsi(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'skripsi_file' => ['required', 'file', 'mimes:pdf', 'max:10240'], // Max 10MB
+        ], [
+            'skripsi_file.required' => 'File laporan akhir/skripsi wajib diunggah.',
+            'skripsi_file.mimes' => 'File harus berupa PDF.',
+            'skripsi_file.max' => 'Ukuran file maksimal adalah 10MB.',
+        ]);
+
+        if ($request->user()->skripsi_file_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($request->user()->skripsi_file_path);
+        }
+        
+        $skripsiPath = $request->file('skripsi_file')->store('skripsi', 'public');
+        $request->user()->skripsi_file_path = $skripsiPath;
+        $request->user()->skripsi_status = 'pending';
+        $request->user()->save();
+
+        return Redirect::route('profile.edit')->with('status', 'skripsi-uploaded');
     }
 
     /**

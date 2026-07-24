@@ -45,6 +45,7 @@ class ProfileUpdateRequest extends FormRequest
             'citizenship' => ['nullable', 'string', 'max:255'],
             'education_start_year' => ['nullable', 'digits:4'],
             'education_end_year' => ['nullable', 'digits:4', 'gte:education_start_year'],
+            'skripsi_file' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // Max 10MB
         ];
     }
 }
