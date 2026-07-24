@@ -471,7 +471,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">Asal Universitas / Sekolah</label>
                                     <select name="university_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
@@ -480,14 +480,6 @@
                                             <option value="{{ $uni->id }}">{{ $uni->name }}</option>
                                         @endforeach
                                     </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun Pendidikan</label>
-                                    <div class="flex items-center space-x-2">
-                                        <input name="education_start_year" type="number" min="1900" max="2099" step="1" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Mulai">
-                                        <span class="text-gray-500">-</span>
-                                        <input name="education_end_year" type="number" min="1900" max="2099" step="1" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Selesai">
-                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis Kelamin (Gender)</label>
@@ -499,35 +491,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Fakultas</label>
-                                    <select name="faculty" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                        <option value="">-- Pilih Fakultas --</option>
-                                        @foreach($faculties as $fac)
-                                            <option value="{{ $fac->name }}">{{ $fac->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Jurusan</label>
-                                    <select name="major" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                        <option value="">-- Pilih Jurusan --</option>
-                                        @foreach($majors as $maj)
-                                            <option value="{{ $maj->name }}">{{ $maj->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Program Studi (Prodi)</label>
-                                    <select name="study_program" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                        <option value="">-- Pilih Prodi --</option>
-                                        @foreach($studyPrograms as $sp)
-                                            <option value="{{ $sp->name }}">{{ $sp->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
+
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>

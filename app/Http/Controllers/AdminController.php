@@ -160,19 +160,24 @@ class AdminController extends Controller
             }
         }
 
-        $chartMonths = [];
+        $chartUnivLabels = [];
         $chartHadirData = [];
         $chartIzinData = [];
         $chartAlpaData = [];
 
-        for ($i = 5; $i >= 0; $i--) {
-            $monthDate = Carbon::now('Asia/Makassar')->subMonths($i);
-            $chartMonths[] = $monthDate->translatedFormat('M Y');
-            $m = $monthDate->month;
-            $y = $monthDate->year;
+        // Ambil semua universitas yang ada intern aktif di bawah mentor ini
+        $universities = \App\Models\University::whereHas('users', function ($q) {
+            $q->where('role', 'intern');
+            $this->applyMentorScope($q, 'self');
+        })->get();
 
-            $attQuery = Attendance::whereMonth('date', $m)->whereYear('date', $y);
-            $this->applyMentorScope($attQuery);
+        foreach ($universities as $univ) {
+            $chartUnivLabels[] = \Illuminate\Support\Str::limit($univ->name, 20);
+
+            $attQuery = Attendance::whereHas('user', function ($q) use ($univ) {
+                $q->where('university_id', $univ->id);
+                $this->applyMentorScope($q, 'self');
+            });
 
             $hadirCount = (clone $attQuery)->where('status', 'verified')->count();
             $izinCount = (clone $attQuery)->where('status', 'izin')->count();
@@ -188,7 +193,7 @@ class AdminController extends Controller
         return view('admin.dashboard', compact(
             'totalInterns', 'activeInterns', 'pendingAbsensi', 'recentActivities',
             'totalLogbooks', 'pendingLogbooks', 'verifiedLogbooks', 'endingSoonInterns', 'interns', 'lowAttendanceInterns',
-            'chartDivisionLabels', 'chartDivisionLateAvg', 'chartMonths', 'chartHadirData', 'chartIzinData', 'chartAlpaData', 'recentNotifications'
+            'chartDivisionLabels', 'chartDivisionLateAvg', 'chartUnivLabels', 'chartHadirData', 'chartIzinData', 'chartAlpaData', 'recentNotifications'
         ));
     }
 

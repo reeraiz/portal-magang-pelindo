@@ -291,7 +291,7 @@
             </div>
         </div>
 
-        <!-- Chart 2: Kehadiran 6 Bulan Terakhir -->
+        <!-- Chart 2: Kehadiran per Kampus -->
         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -300,7 +300,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-gray-800 text-base">Kehadiran 6 Bulan Terakhir</h3>
+                            <h3 class="font-bold text-gray-800 text-base">Kehadiran per Kampus</h3>
                             <p class="text-xs text-gray-500">Perbandingan Hadir (Verified), Izin/Sakit, dan Alpa</p>
                         </div>
                     </div>
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(ctxMonthly, {
             type: 'bar',
             data: {
-                labels: {!! json_encode($chartMonths ?? []) !!},
+                labels: {!! json_encode($chartUnivLabels ?? []) !!},
                 datasets: [
                     {
                         label: 'Hadir (Verified)',

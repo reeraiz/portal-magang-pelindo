@@ -40,7 +40,7 @@
             $allDepts = collect();
             foreach($divisions as $div) {
                 foreach($div->departments as $dept) {
-                    $allDepts->push((object)['id' => $dept->id, 'name' => $dept->name, 'division_name' => $div->name]);
+                    $allDepts->push((object)['id' => $dept->id, 'name' => $dept->name, 'division_name' => $div->name, 'division_id' => $div->id]);
                 }
             }
             $allDepts = $allDepts->sortBy('name')->values();
@@ -85,7 +85,7 @@
         <form action="{{ route('admin.master-data.store', 'department') }}" method="POST" class="mt-auto w-full">
             @csrf
             <div class="flex flex-col gap-2">
-                <select name="division_id" required class="w-full text-sm border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                <select name="division_id" x-model="selectedFilter" required class="w-full text-sm border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition-colors">
                     <option value="">-- Pilih Divisi --</option>
                     @foreach($divisions as $div)
                         <option value="{{ $div->id }}">{{ $div->name }}</option>
@@ -124,19 +124,27 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('masterCard', (initialData) => ({
             search: '',
+            selectedFilter: '',
             currentPage: 1,
             itemsPerPage: 5,
             items: initialData,
 
             get filteredData() {
-                if (this.search.trim() === '') {
-                    return this.items;
+                let result = this.items;
+
+                if (this.selectedFilter !== '') {
+                    result = result.filter(item => item.division_id == this.selectedFilter);
                 }
-                const query = this.search.toLowerCase();
-                return this.items.filter(item => {
-                    return item.name.toLowerCase().includes(query) || 
-                           (item.division_name && item.division_name.toLowerCase().includes(query));
-                });
+
+                if (this.search.trim() !== '') {
+                    const query = this.search.toLowerCase();
+                    result = result.filter(item => {
+                        return item.name.toLowerCase().includes(query) || 
+                               (item.division_name && item.division_name.toLowerCase().includes(query));
+                    });
+                }
+                
+                return result;
             },
 
             get totalPages() {
