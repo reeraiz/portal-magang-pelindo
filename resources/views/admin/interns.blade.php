@@ -14,14 +14,22 @@
         </div>
     </div>
 
-    @if(auth()->user()->role === 'admin')
-    <div class="flex justify-end">
+    <div class="flex justify-end gap-3">
+        <button type="button" onclick="exportSelected('excel')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all hover:shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Ekspor Excel
+        </button>
+        <button type="button" onclick="exportSelected('pdf')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all hover:shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>
+            Ekspor PDF
+        </button>
+        @if(auth()->user()->role === 'admin')
         <button type="button" onclick="openCreateUser()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all hover:shadow-md">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
             Buat User Baru
         </button>
+        @endif
     </div>
-    @endif
 
     <!-- Intern List -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -96,11 +104,8 @@
             <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100">
                     <tr>
-                        <th class="px-4 py-4 w-16 text-center">
-                            <div class="flex flex-col items-center justify-center gap-1">
-                                <input type="checkbox" id="selectAllInterns" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" onclick="toggleAllCheckboxes(this)" title="Pilih Semua">
-                                <span class="text-[10px] text-gray-400 font-semibold leading-tight cursor-help text-center" title="Centang untuk memilih banyak intern sekaligus, lalu ubah shift mereka di menu Bulk Action yang muncul di atas tabel.">Atur<br>Shift</span>
-                            </div>
+                        <th class="px-4 py-4 w-16 text-center align-middle">
+                            <input type="checkbox" id="selectAllInterns" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" onclick="toggleAllCheckboxes(this)" title="Pilih Semua">
                         </th>
                         <th class="px-6 py-4">Nama</th>
                         <th class="px-6 py-4">Divisi & Departemen</th>
@@ -822,6 +827,22 @@
         const checkboxes = document.querySelectorAll('.intern-checkbox');
         checkboxes.forEach(cb => cb.checked = source.checked);
         updateBulkActionUI();
+    }
+
+    function exportSelected(type) {
+        const checkboxes = document.querySelectorAll('.intern-checkbox:checked');
+        let ids = Array.from(checkboxes).map(cb => cb.value).join(',');
+        let url = type === 'excel' ? '{{ route('admin.interns.export.excel') }}' : '{{ route('admin.interns.export.pdf') }}';
+        
+        if (ids) {
+            url += '?ids=' + ids;
+        }
+
+        if (type === 'pdf') {
+            window.open(url, '_blank');
+        } else {
+            window.location.href = url;
+        }
     }
 
     function updateBulkActionUI() {

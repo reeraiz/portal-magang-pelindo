@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\InternController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\ProfileController;
@@ -47,6 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/logbook/export', [AdminController::class, 'exportLogbook'])->name('logbook.export');
         Route::get('/logbook/print', [AdminController::class, 'printLogbook'])->name('logbook.print');
         Route::get('/interns', [AdminController::class, 'interns'])->name('interns');
+        Route::get('/interns/export/excel', [ExportController::class, 'exportExcel'])->name('interns.export.excel');
+        Route::get('/interns/export/pdf', [ExportController::class, 'exportPdf'])->name('interns.export.pdf');
         Route::get('/interns/{id}/cv', [AdminController::class, 'generateCv'])->name('interns.cv');
         Route::post('/interns/certificate/send', [AdminController::class, 'sendCertificate'])->name('certificate.send');
         

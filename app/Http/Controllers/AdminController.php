@@ -31,18 +31,10 @@ class AdminController extends Controller
         if (auth()->check() && auth()->user()->role === 'pembimbing') {
             $mentor = auth()->user();
             if ($relation === 'self') {
-                $query->where(function ($q) use ($mentor) {
-                    $q->where('mentor_id', $mentor->id);
-                    if ($mentor->division) {
-                        $q->orWhere('division', $mentor->division);
-                    }
-                });
+                $query->where('mentor_id', $mentor->id);
             } else {
                 $query->whereHas($relation, function ($q) use ($mentor) {
                     $q->where('mentor_id', $mentor->id);
-                    if ($mentor->division) {
-                        $q->orWhere('division', $mentor->division);
-                    }
                 });
             }
         }
