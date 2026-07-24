@@ -173,7 +173,7 @@
     <div id="cropModal" class="fixed inset-0 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" style="z-index: 9999;">
         <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl relative">
             <h3 class="text-lg font-bold text-gray-900 mb-4">Sesuaikan Foto Profil</h3>
-            <div class="w-full h-[300px] bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
+            <div class="w-full bg-gray-100 rounded-xl overflow-hidden mb-4 relative" style="height: 400px; max-height: 60vh;">
                 <img id="imageToCrop" src="" alt="Picture" class="max-w-full hidden">
             </div>
             <div class="flex items-center justify-end gap-3">
