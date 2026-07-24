@@ -47,7 +47,9 @@ class InternController extends Controller
             $start = Carbon::parse($user->internship_start_date, 'Asia/Makassar');
             $end = Carbon::parse($user->internship_end_date, 'Asia/Makassar');
 
-            $totalDays = $start->diffInDays($end);
+            $totalDays = $start->diffInDaysFiltered(function (Carbon $date) {
+                return $date->isWeekday() && !array_key_exists($date->format('Y-m-d'), config('holidays', []));
+            }, $end->copy()->addDay());
 
             // Count actual days the intern has checked in
             $daysAttended = Attendance::where('user_id', $user->id)
@@ -73,6 +75,10 @@ class InternController extends Controller
         $type = $request->type;
         // Gunakan waktu server WITA (Makassar) secara mutlak untuk keamanan dan mencegah timestamp tampering (VULN-01)
         $now = Carbon::now('Asia/Makassar');
+
+        if ($now->isWeekend() || array_key_exists($now->format('Y-m-d'), config('holidays', []))) {
+            return redirect()->back()->withErrors(['error' => 'Absensi tidak dapat dilakukan pada hari libur akhir pekan atau hari libur nasional.']);
+        }
 
         $attendance = Attendance::where('user_id', Auth::id())
             ->whereDate('date', $now->toDateString())
