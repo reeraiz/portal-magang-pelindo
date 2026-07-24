@@ -51,9 +51,12 @@ class InternController extends Controller
                 return $date->isWeekday() && !array_key_exists($date->format('Y-m-d'), config('holidays', []));
             }, $end->copy()->addDay());
 
-            // Count actual days the intern has checked in
+            // Count actual days the intern has checked in or has approved leave
             $daysAttended = Attendance::where('user_id', $user->id)
-                ->whereNotNull('check_in')
+                ->where(function($query) {
+                    $query->whereNotNull('check_in')
+                          ->orWhere('status', 'izin');
+                })
                 ->count();
 
             $remainingDays = max(0, $totalDays - $daysAttended);
