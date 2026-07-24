@@ -16,7 +16,18 @@
                     <h3 class="text-xl font-bold text-white">{{ Auth::user()->name }}</h3>
                     <div class="flex flex-col gap-1 mt-1.5">
                         <p class="text-sm text-blue-200 font-medium">Divisi: {{ Auth::user()->division ?? 'Belum diatur' }}</p>
-                        <p class="text-sm text-blue-200 font-medium">Shift: {{ Auth::user()->shift === 'siang' ? 'Siang (12:00 - 17:00)' : (Auth::user()->shift === 'full_day' ? 'Full Day (08:00 - 17:00)' : 'Pagi (08:00 - 12:00)') }}</p>
+                        @php
+                            $isFriday = \Carbon\Carbon::now()->isFriday();
+                            $shiftStr = '';
+                            if (Auth::user()->shift === 'siang') {
+                                $shiftStr = $isFriday ? 'Siang (12:00 - 16:30)' : 'Siang (12:00 - 17:00)';
+                            } elseif (Auth::user()->shift === 'full_day') {
+                                $shiftStr = $isFriday ? 'Full Day (07:30 - 16:30)' : 'Full Day (08:00 - 17:00)';
+                            } else {
+                                $shiftStr = $isFriday ? 'Pagi (07:30 - 12:00)' : 'Pagi (08:00 - 12:00)';
+                            }
+                        @endphp
+                        <p class="text-sm text-blue-200 font-medium">Shift: {{ $shiftStr }}</p>
                     </div>
                 </div>
             </div>
