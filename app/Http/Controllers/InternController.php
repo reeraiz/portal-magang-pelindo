@@ -119,7 +119,7 @@ class InternController extends Controller
             $shift = Auth::user()->shift ?? 'pagi';
             $isFriday = $now->isFriday();
 
-            if ($shift === 'siang') {
+            if ($shift === 'siang' || $shift === 'full_day') {
                 $targetPulangStr = $isFriday ? '16:30:00' : '17:00:00';
             } else {
                 $targetPulangStr = '12:00:00';

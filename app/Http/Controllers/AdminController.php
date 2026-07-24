@@ -404,7 +404,7 @@ class AdminController extends Controller
             'internship_start_date' => 'nullable|date',
             'internship_end_date' => 'nullable|date|after_or_equal:internship_start_date',
             'mentor_id' => 'nullable|exists:users,id',
-            'shift' => 'nullable|in:pagi,siang',
+            'shift' => 'nullable|in:pagi,siang,full_day',
         ]);
 
         $query = User::where('id', $id)->where('role', 'intern');
@@ -424,7 +424,7 @@ class AdminController extends Controller
         $request->validate([
             'intern_ids' => 'required|array',
             'intern_ids.*' => 'exists:users,id',
-            'shift' => 'required|in:pagi,siang',
+            'shift' => 'required|in:pagi,siang,full_day',
         ]);
 
         $query = User::whereIn('id', $request->intern_ids)->where('role', 'intern');
@@ -499,7 +499,7 @@ class AdminController extends Controller
             'education_level_id' => 'nullable|exists:education_levels,id',
             'university_id' => 'nullable|exists:universities,id',
             'gender_id' => 'nullable|exists:genders,id',
-            'shift' => 'nullable|in:pagi,siang',
+            'shift' => 'nullable|in:pagi,siang,full_day',
             'password' => 'nullable|string|min:8',
         ]);
 

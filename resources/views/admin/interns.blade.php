@@ -50,6 +50,7 @@
                         <option value="">Semua Shift</option>
                         <option value="pagi" {{ request('shift') === 'pagi' ? 'selected' : '' }}>Shift Pagi</option>
                         <option value="siang" {{ request('shift') === 'siang' ? 'selected' : '' }}>Shift Siang</option>
+                        <option value="full_day" {{ request('shift') === 'full_day' ? 'selected' : '' }}>Shift Full Day</option>
                     </select>
                 </div>
                 
@@ -79,6 +80,13 @@
                     <input type="hidden" name="shift" value="siang">
                     <button type="button" onclick="submitBulkShift('siang')" class="px-3 py-1.5 bg-white border border-orange-200 text-orange-600 hover:bg-orange-500 hover:text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                         Set ke Siang
+                    </button>
+                </form>
+                <form action="{{ route('admin.interns.bulk-shift') }}" method="POST" id="bulk-form-full_day" class="inline">
+                    @csrf
+                    <input type="hidden" name="shift" value="full_day">
+                    <button type="button" onclick="submitBulkShift('full_day')" class="px-3 py-1.5 bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                        Set ke Full Day
                     </button>
                 </form>
             </div>
@@ -131,13 +139,16 @@
                                 <div class="relative inline-block">
                                     @if($intern->shift === 'siang')
                                         <svg class="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-orange-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                                    @elseif($intern->shift === 'full_day')
+                                        <svg class="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                     @else
                                         <svg class="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
                                     @endif
                                     
-                                    <select name="shift" onchange="this.form.submit()" class="text-xs border {{ $intern->shift === 'siang' ? 'border-orange-200 bg-orange-50 text-orange-600' : 'border-blue-200 bg-blue-50 text-blue-600' }} rounded-full pl-7 pr-6 py-1 font-bold appearance-none bg-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors m-0">
+                                    <select name="shift" onchange="this.form.submit()" class="text-xs border {{ $intern->shift === 'siang' ? 'border-orange-200 bg-orange-50 text-orange-600' : ($intern->shift === 'full_day' ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-blue-200 bg-blue-50 text-blue-600') }} rounded-full pl-7 pr-6 py-1 font-bold appearance-none bg-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors m-0">
                                         <option value="pagi" {{ $intern->shift === 'pagi' || is_null($intern->shift) ? 'selected' : '' }}>Pagi</option>
                                         <option value="siang" {{ $intern->shift === 'siang' ? 'selected' : '' }}>Siang</option>
+                                        <option value="full_day" {{ $intern->shift === 'full_day' ? 'selected' : '' }}>Full Day</option>
                                     </select>
                                     
                                     <svg class="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none {{ $intern->shift === 'siang' ? 'text-orange-600' : 'text-blue-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
@@ -418,6 +429,7 @@
                                 <select name="shift" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                     <option value="pagi">Pagi (08:00 - 12:00)</option>
                                     <option value="siang">Siang (12:00 - 17:00)</option>
+                                    <option value="full_day">Full Day (08:00 - 17:00)</option>
                                 </select>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
@@ -526,6 +538,7 @@
                             <select name="shift" id="edit-shift" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 <option value="pagi">Pagi (08:00 - 12:00)</option>
                                 <option value="siang">Siang (12:00 - 17:00)</option>
+                                <option value="full_day">Full Day (08:00 - 17:00)</option>
                             </select>
                         </div>
                         <div>
@@ -781,7 +794,7 @@
         const checkboxes = document.querySelectorAll('.intern-checkbox:checked');
         if (checkboxes.length === 0) return;
         
-        const formId = shiftType === 'pagi' ? 'bulk-form-pagi' : 'bulk-form-siang';
+        const formId = 'bulk-form-' + shiftType;
         const form = document.getElementById(formId);
         
         // Remove old hidden inputs if any
