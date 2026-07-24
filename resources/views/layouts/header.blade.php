@@ -20,8 +20,12 @@
                 <p class="text-blue-200 text-xs mt-0.5 leading-none font-medium">{{ Auth::user() ? (Auth::user()->role === 'intern' ? 'Internship Program' : (Auth::user()->role === 'pembimbing' ? 'Pembimbing / Mentor' : 'Administrator')) : 'Visitor' }}</p>
             </div>
             
-            <div class="w-10 h-10 rounded-full border-2 border-blue-300 shadow-md bg-white/10 group-hover:border-white transition-colors flex items-center justify-center text-blue-200 group-hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div class="w-10 h-10 rounded-full border-2 border-blue-300 shadow-md bg-white/10 group-hover:border-white transition-colors flex items-center justify-center text-blue-200 group-hover:text-white overflow-hidden">
+                @if(Auth::user() && Auth::user()->avatar)
+                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                @else
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                @endif
             </div>
         </a>
     </div>

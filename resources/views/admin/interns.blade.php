@@ -119,8 +119,12 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 border-2 border-white shadow-sm">
-                                    <span class="font-bold text-blue-700 text-sm">{{ substr($intern->name, 0, 1) }}</span>
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 border-2 border-white shadow-sm overflow-hidden">
+                                    @if($intern->avatar)
+                                        <img src="{{ asset('storage/' . $intern->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="font-bold text-blue-700 text-sm">{{ substr($intern->name, 0, 1) }}</span>
+                                    @endif
                                 </div>
                                 <div>
                                     <p class="font-bold text-gray-800">{{ $intern->name }}</p>

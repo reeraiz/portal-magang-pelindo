@@ -9,8 +9,12 @@
         <!-- Profile Card -->
         <div class="col-span-12 lg:col-span-4 bg-blue-600 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden h-[220px] shadow-lg">
             <div class="relative z-10 flex items-center gap-4">
-                <div class="w-16 h-16 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-2xl border border-white/10 shadow-inner">
-                    {{ substr(Auth::user()->name, 0, 1) }}
+                <div class="w-16 h-16 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-2xl border border-white/10 shadow-inner overflow-hidden">
+                    @if(Auth::user()->avatar)
+                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                    @else
+                        {{ substr(Auth::user()->name, 0, 1) }}
+                    @endif
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-white">{{ Auth::user()->name }}</h3>

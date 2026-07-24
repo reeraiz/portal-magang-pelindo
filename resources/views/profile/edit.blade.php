@@ -6,8 +6,12 @@
     <!-- Header Area -->
     <div class="bg-[#0A1128] rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
         <div class="relative z-10 flex items-center gap-6">
-            <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center text-4xl font-bold border-4 border-white/20">
-                {{ substr(auth()->user()->name, 0, 1) }}
+            <div class="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center text-4xl font-bold border-4 border-white/20 overflow-hidden">
+                @if(auth()->user()->avatar)
+                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                @else
+                    {{ substr(auth()->user()->name, 0, 1) }}
+                @endif
             </div>
             <div>
                 <h2 class="text-3xl font-bold mb-1">{{ auth()->user()->name }}</h2>

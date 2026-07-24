@@ -12,9 +12,29 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="space-y-5">
+    <form method="post" action="{{ route('profile.update') }}" class="space-y-5" enctype="multipart/form-data">
         @csrf
         @method('patch')
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Foto Profil</label>
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-500 text-xl font-bold border border-gray-200 shadow-sm">
+                    @if($user->avatar)
+                        <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                    @else
+                        {{ substr($user->name, 0, 1) }}
+                    @endif
+                </div>
+                <div class="flex-1">
+                    <input type="file" name="avatar" id="avatar" accept="image/jpeg, image/png, image/jpg" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors cursor-pointer focus:outline-none" />
+                    <p class="mt-2 text-xs text-gray-500 leading-relaxed">
+                        <span class="font-semibold text-amber-600">Penting:</span> Upload foto profil yang rapi menggunakan almamater kampus. (Maks 2MB, JPG/PNG).
+                    </p>
+                </div>
+            </div>
+            <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('avatar')" />
+        </div>
 
         <div>
             <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
@@ -148,4 +168,120 @@
             @endif
         </div>
     </form>
+
+    <!-- Crop Modal -->
+    <div id="cropModal" class="fixed inset-0 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" style="z-index: 9999;">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl relative">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Sesuaikan Foto Profil</h3>
+            <div class="w-full h-[300px] bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
+                <img id="imageToCrop" src="" alt="Picture" class="max-w-full hidden">
+            </div>
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" id="cancelCrop" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl text-sm hover:bg-gray-200 transition-colors">
+                    Batal
+                </button>
+                <button type="button" id="applyCrop" class="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-sm hover:bg-blue-700 transition-colors">
+                    Terapkan Crop
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper.js Dependencies -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const avatarInput = document.getElementById('avatar');
+            const cropModal = document.getElementById('cropModal');
+            
+            // Move modal to body to avoid z-index stacking context issues
+            document.body.appendChild(cropModal);
+            
+            const imageToCrop = document.getElementById('imageToCrop');
+            const cancelCrop = document.getElementById('cancelCrop');
+            const applyCrop = document.getElementById('applyCrop');
+            let cropper = null;
+            let currentFileName = '';
+
+            avatarInput.addEventListener('change', function (e) {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    currentFileName = file.name;
+                    
+                    // Show modal
+                    cropModal.classList.remove('hidden');
+                    cropModal.classList.add('flex');
+                    
+                    // Load image
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        // Wait for the img element to finish loading the source
+                        imageToCrop.onload = function() {
+                            if (cropper) {
+                                cropper.destroy();
+                            }
+                            // Initialize cropper after image is fully rendered in the DOM
+                            cropper = new Cropper(imageToCrop, {
+                                aspectRatio: 1,
+                                viewMode: 2,
+                                background: false,
+                            });
+                        };
+                        
+                        imageToCrop.src = event.target.result;
+                        imageToCrop.classList.remove('hidden');
+                        imageToCrop.style.display = 'block';
+                        imageToCrop.style.maxWidth = '100%';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            cancelCrop.addEventListener('click', function () {
+                closeModal();
+                avatarInput.value = ''; // Reset input
+            });
+
+            applyCrop.addEventListener('click', function () {
+                if (!cropper) return;
+                
+                cropper.getCroppedCanvas({
+                    width: 400,
+                    height: 400,
+                }).toBlob(function (blob) {
+                    // Update file input with cropped blob
+                    const file = new File([blob], currentFileName, { type: 'image/jpeg' });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    avatarInput.files = dataTransfer.files;
+
+                    // Update UI preview
+                    const previewImg = avatarInput.closest('.flex.items-center.gap-4').querySelector('img');
+                    const previewContainer = avatarInput.closest('.flex.items-center.gap-4').querySelector('.w-16.h-16');
+                    
+                    const url = URL.createObjectURL(blob);
+                    if (previewImg) {
+                        previewImg.src = url;
+                    } else {
+                        previewContainer.innerHTML = '<img src="' + url + '" alt="Avatar" class="w-full h-full object-cover">';
+                    }
+                    
+                    closeModal();
+                }, 'image/jpeg');
+            });
+
+            function closeModal() {
+                cropModal.classList.add('hidden');
+                cropModal.classList.remove('flex');
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                imageToCrop.src = '';
+            }
+        });
+    </script>
 </section>

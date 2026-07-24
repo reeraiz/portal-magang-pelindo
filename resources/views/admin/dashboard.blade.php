@@ -114,8 +114,12 @@
                         <tr class="hover:bg-gray-50/60 transition-colors">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-2.5">
-                                    <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center shrink-0 border border-blue-100 text-xs shadow-sm">
-                                        {{ substr($intern->name, 0, 1) }}
+                                    <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 font-bold flex items-center justify-center shrink-0 border border-blue-100 text-xs shadow-sm overflow-hidden">
+                                        @if($intern->avatar)
+                                            <img src="{{ asset('storage/' . $intern->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                                        @else
+                                            {{ substr($intern->name, 0, 1) }}
+                                        @endif
                                     </div>
                                     <div class="overflow-hidden">
                                         <h4 class="font-bold text-gray-800 truncate">{{ $intern->name }}</h4>
@@ -179,8 +183,12 @@
             @forelse($lowAttendanceInterns as $low)
             <div class="bg-red-50/60 hover:bg-red-50 transition-colors p-3.5 rounded-xl border border-red-200 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center font-bold text-white shrink-0 text-xs shadow-sm">
-                        {{ substr($low->name, 0, 1) }}
+                    <div class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center font-bold text-white shrink-0 text-xs shadow-sm overflow-hidden">
+                        @if($low->avatar)
+                            <img src="{{ asset('storage/' . $low->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                        @else
+                            {{ substr($low->name, 0, 1) }}
+                        @endif
                     </div>
                     <div class="overflow-hidden">
                         <h4 class="text-xs font-bold text-gray-800 truncate">{{ $low->name }}</h4>
@@ -226,8 +234,12 @@
             @forelse($endingSoonInterns as $intern)
             <div class="bg-gray-50/70 hover:bg-orange-50/50 transition-colors p-3.5 rounded-xl border border-gray-100 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <div class="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white shrink-0 text-xs shadow-sm">
-                        {{ substr($intern->name, 0, 1) }}
+                    <div class="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white shrink-0 text-xs shadow-sm overflow-hidden">
+                        @if($intern->avatar)
+                            <img src="{{ asset('storage/' . $intern->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                        @else
+                            {{ substr($intern->name, 0, 1) }}
+                        @endif
                     </div>
                     <div class="overflow-hidden">
                         <h4 class="font-bold text-gray-800 text-xs truncate">{{ $intern->name }}</h4>
