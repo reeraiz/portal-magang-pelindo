@@ -9,9 +9,6 @@ use App\Models\Department;
 use App\Models\InternshipType;
 use App\Models\EducationLevel;
 use App\Models\University;
-use App\Models\Faculty;
-use App\Models\Major;
-use App\Models\StudyProgram;
 
 class MasterDataController extends Controller
 {
@@ -21,13 +18,9 @@ class MasterDataController extends Controller
         $internshipTypes = InternshipType::orderBy('name')->get();
         $educationLevels = EducationLevel::orderBy('name')->get();
         $universities = University::orderBy('name')->get();
-        $faculties = Faculty::orderBy('name')->get();
-        $majors = Major::orderBy('name')->get();
-        $studyPrograms = StudyProgram::orderBy('name')->get();
-
         return view('admin.master-data', compact(
             'divisions', 'internshipTypes', 'educationLevels',
-            'universities', 'faculties', 'majors', 'studyPrograms'
+            'universities'
         ));
     }
 
@@ -52,15 +45,7 @@ class MasterDataController extends Controller
             case 'university':
                 University::create(['name' => $request->name]);
                 break;
-            case 'faculty':
-                Faculty::create(['name' => $request->name]);
-                break;
-            case 'major':
-                Major::create(['name' => $request->name]);
-                break;
-            case 'study-program':
-                StudyProgram::create(['name' => $request->name]);
-                break;
+
             default:
                 return back()->with('error', 'Tipe data tidak valid.');
         }
@@ -86,15 +71,7 @@ class MasterDataController extends Controller
             case 'university':
                 University::findOrFail($id)->delete();
                 break;
-            case 'faculty':
-                Faculty::findOrFail($id)->delete();
-                break;
-            case 'major':
-                Major::findOrFail($id)->delete();
-                break;
-            case 'study-program':
-                StudyProgram::findOrFail($id)->delete();
-                break;
+
             default:
                 return back()->with('error', 'Tipe data tidak valid.');
         }

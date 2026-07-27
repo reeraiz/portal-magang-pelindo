@@ -34,7 +34,7 @@
             font-size: 1.125rem; /* text-lg */
             font-weight: bold;
             text-transform: uppercase;
-            border-bottom: 3px double black;
+            border-bottom: 2px solid black;
             display: block;
             margin-bottom: 1rem;
         }
@@ -227,7 +227,7 @@
                         <td class="py-1 text-black align-top">
                             {{ $intern->division ?? '-' }}
                             @if($intern->department)
-                                <br>{{ $intern->department }}
+                                / {{ $intern->department }}
                             @endif
                         </td>
                     </tr>

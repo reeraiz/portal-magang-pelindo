@@ -82,7 +82,7 @@
                     <td>
                         {{ $intern->division ?? '-' }}
                         @if($intern->department)
-                            <br>{{ $intern->department }}
+                            / {{ $intern->department }}
                         @endif
                     </td>
                     <td>{{ $intern->mentor ? $intern->mentor->name : '-' }}</td>

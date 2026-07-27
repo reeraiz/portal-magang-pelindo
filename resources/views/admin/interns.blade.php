@@ -23,7 +23,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>
             Ekspor PDF
         </button>
-        @if(auth()->user()->role === 'admin')
+        @if(auth()->user()->role === 'admin' || auth()->user()->email === 'sdm@pelindo.co.id')
         <button type="button" onclick="openCreateUser()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all hover:shadow-md">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
             Buat User Baru
@@ -207,7 +207,7 @@
                                     Review Laporan
                                 </button>
                                 @endif
-                                @if(auth()->user()->role === 'admin')
+                                @if(auth()->user()->role === 'admin' && auth()->user()->email !== 'sdm@pelindo.co.id')
                                 <form action="{{ route('admin.users.destroy', $intern->id) }}" method="POST" class="confirm-form" data-confirm-msg="Anda yakin ingin MENGHAPUS akun {{ addslashes($intern->name) }} secara permanen? Semua data absensi dan logbook juga akan ikut terhapus!">
                                     @csrf
                                     @method('DELETE')
@@ -258,7 +258,7 @@
                         <th class="px-6 py-4">Email</th>
                         <th class="px-6 py-4">Role</th>
                         <th class="px-6 py-4">Divisi / Departemen</th>
-                        @if(auth()->user()->role === 'admin')
+                        @if(auth()->user()->role === 'admin' || auth()->user()->email === 'sdm@pelindo.co.id')
                         <th class="px-6 py-4">Aksi</th>
                         @endif
                     </tr>
@@ -278,7 +278,7 @@
                                 {{ $mentor->division ?? 'Belum dipilih' }}
                             </span>
                         </td>
-                        @if(auth()->user()->role === 'admin')
+                        @if(auth()->user()->role === 'admin' || auth()->user()->email === 'sdm@pelindo.co.id')
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <button type="button" onclick="openEditMentor({{ json_encode($mentor) }})" class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 rounded-lg text-xs font-bold transition-colors shadow-sm">
@@ -290,7 +290,7 @@
                                         Reset Password
                                     </button>
                                 </form>
-                                @if(auth()->id() !== $mentor->id)
+                                @if(auth()->id() !== $mentor->id && auth()->user()->email !== 'sdm@pelindo.co.id')
                                 <form action="{{ route('admin.users.destroy', $mentor->id) }}" method="POST" class="confirm-form" data-confirm-msg="Apakah Anda yakin ingin menghapus akun {{ addslashes($mentor->name) }} secara permanen?">
                                     @csrf
                                     @method('DELETE')
@@ -305,7 +305,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ auth()->user()->role === 'admin' ? '5' : '4' }}" class="px-6 py-8 text-center text-gray-500">Belum ada pembimbing terdaftar.</td>
+                        <td colspan="{{ auth()->user()->role === 'admin' || auth()->user()->email === 'sdm@pelindo.co.id' ? '5' : '4' }}" class="px-6 py-8 text-center text-gray-500">Belum ada pembimbing terdaftar.</td>
                     </tr>
                     @endforelse
                 </tbody>

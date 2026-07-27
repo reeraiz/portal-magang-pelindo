@@ -28,7 +28,7 @@ class AdminController extends Controller
      */
     private function applyMentorScope($query, string $relation = 'user')
     {
-        if (auth()->check() && auth()->user()->role === 'pembimbing') {
+        if (auth()->check() && auth()->user()->role === 'pembimbing' && auth()->user()->email !== 'sdm@pelindo.co.id') {
             $mentor = auth()->user();
             if ($relation === 'self') {
                 $query->where('mentor_id', $mentor->id);
@@ -181,7 +181,34 @@ class AdminController extends Controller
 
             $hadirCount = (clone $attQuery)->where('status', 'verified')->count();
             $izinCount = (clone $attQuery)->where('status', 'izin')->count();
-            $alpaCount = (clone $attQuery)->where('status', 'alpa')->count();
+            
+            // Hitung alpa secara dinamis untuk setiap intern di universitas ini
+            $alpaCount = 0;
+            $univInterns = \App\Models\User::where('role', 'intern')->where('university_id', $univ->id);
+            $this->applyMentorScope($univInterns, 'self');
+            
+            foreach ($univInterns->get() as $intern) {
+                $explicitAlpa = \App\Models\Attendance::where('user_id', $intern->id)->where('status', 'alpa')->count();
+                $missingDays = 0;
+                
+                if ($intern->internship_start_date && $intern->internship_end_date) {
+                    $start = \Carbon\Carbon::parse($intern->internship_start_date, 'Asia/Makassar')->startOfDay();
+                    $today = \Carbon\Carbon::now('Asia/Makassar')->startOfDay();
+                    
+                    if ($today->gt($start)) {
+                        $elapsedDays = max(1, $start->diffInDaysFiltered(function (\Carbon\Carbon $date) {
+                            return ! $date->isWeekend();
+                        }, min($today, \Carbon\Carbon::parse($intern->internship_end_date, 'Asia/Makassar')->endOfDay())));
+                        
+                        $validAttendances = \App\Models\Attendance::where('user_id', $intern->id)->where(function ($q) {
+                            $q->whereNotNull('check_in')->orWhereIn('status', ['verified', 'izin']);
+                        })->count();
+                        
+                        $missingDays = max(0, $elapsedDays - $validAttendances);
+                    }
+                }
+                $alpaCount += max($explicitAlpa, $missingDays);
+            }
 
             $chartHadirData[] = $hadirCount;
             $chartIzinData[] = $izinCount;
@@ -368,7 +395,9 @@ class AdminController extends Controller
         $this->applyMentorScope($query, 'self');
         $interns = $query->orderBy('name')->paginate(10)->withQueryString();
 
-        if (auth()->user()->role === 'admin') {
+        if (auth()->user()->email === 'sdm@pelindo.co.id') {
+            $mentors = User::whereIn('role', ['pembimbing'])->get();
+        } elseif (auth()->user()->role === 'admin') {
             $mentors = User::whereIn('role', ['admin', 'pembimbing'])->get();
         } else {
             $mentors = User::where('role', 'pembimbing')->get();
@@ -378,9 +407,7 @@ class AdminController extends Controller
         $educationLevels = EducationLevel::all();
         $universities = University::orderBy('name')->get();
         $genders = Gender::all();
-        $faculties = \App\Models\Faculty::orderBy('name')->get();
-        $majors = \App\Models\Major::orderBy('name')->get();
-        $studyPrograms = \App\Models\StudyProgram::orderBy('name')->get();
+
 
         $allInternsQuery = User::where('role', 'intern')
                                ->whereNotNull('internship_end_date')
@@ -392,7 +419,7 @@ class AdminController extends Controller
 
         return view('admin.interns', compact(
             'interns', 'mentors', 'divisions', 'internshipTypes', 'educationLevels', 
-            'universities', 'genders', 'faculties', 'majors', 'studyPrograms', 'allInterns'
+            'universities', 'genders', 'allInterns'
         ));
     }
 
@@ -497,7 +524,7 @@ class AdminController extends Controller
      */
     public function storeUser(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (auth()->user()->role !== 'admin' && auth()->user()->email !== 'sdm@pelindo.co.id') {
             abort(403, 'Hanya Admin yang dapat membuat user baru.');
         }
 
@@ -616,6 +643,10 @@ class AdminController extends Controller
             abort(403, 'Hanya Admin yang dapat menghapus akun.');
         }
 
+        if (auth()->user()->email === 'sdm@pelindo.co.id') {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus akun.');
+        }
+
         $user = User::findOrFail($id);
         
         // Cek agar admin tidak menghapus dirinya sendiri
@@ -646,7 +677,7 @@ class AdminController extends Controller
      */
     public function reviewSkripsi(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (auth()->user()->role !== 'admin' && auth()->user()->email !== 'sdm@pelindo.co.id') {
             abort(403, 'Hanya Admin yang dapat mereview laporan.');
         }
 
@@ -674,7 +705,7 @@ class AdminController extends Controller
      */
     public function sendCertificate(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
+        if (auth()->user()->role !== 'admin' && auth()->user()->email !== 'sdm@pelindo.co.id') {
             abort(403, 'Hanya Admin yang dapat mengirim sertifikat.');
         }
 

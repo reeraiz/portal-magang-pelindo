@@ -183,32 +183,17 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <div>
                 <label for="faculty" class="block text-sm font-semibold text-gray-700 mb-1">Fakultas</label>
-                <select id="faculty" name="faculty" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                    <option value="">-- Pilih Fakultas --</option>
-                    @foreach($faculties as $fac)
-                        <option value="{{ $fac->name }}" {{ old('faculty', $user->faculty) == $fac->name ? 'selected' : '' }}>{{ $fac->name }}</option>
-                    @endforeach
-                </select>
+                <x-text-input id="faculty" name="faculty" type="text" class="mt-1 block w-full" :value="old('faculty', $user->faculty)" placeholder="Contoh: Teknik" />
                 <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('faculty')" />
             </div>
             <div>
                 <label for="major" class="block text-sm font-semibold text-gray-700 mb-1">Jurusan</label>
-                <select id="major" name="major" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                    <option value="">-- Pilih Jurusan --</option>
-                    @foreach($majors as $maj)
-                        <option value="{{ $maj->name }}" {{ old('major', $user->major) == $maj->name ? 'selected' : '' }}>{{ $maj->name }}</option>
-                    @endforeach
-                </select>
+                <x-text-input id="major" name="major" type="text" class="mt-1 block w-full" :value="old('major', $user->major)" placeholder="Contoh: Teknik Elektro" />
                 <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('major')" />
             </div>
             <div>
                 <label for="study_program" class="block text-sm font-semibold text-gray-700 mb-1">Program Studi (Prodi)</label>
-                <select id="study_program" name="study_program" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                    <option value="">-- Pilih Prodi --</option>
-                    @foreach($studyPrograms as $sp)
-                        <option value="{{ $sp->name }}" {{ old('study_program', $user->study_program) == $sp->name ? 'selected' : '' }}>{{ $sp->name }}</option>
-                    @endforeach
-                </select>
+                <x-text-input id="study_program" name="study_program" type="text" class="mt-1 block w-full" :value="old('study_program', $user->study_program)" placeholder="Contoh: Teknik Telekomunikasi" />
                 <x-input-error class="mt-2 text-sm text-red-600" :messages="$errors->get('study_program')" />
             </div>
         </div>

@@ -109,14 +109,7 @@
     <!-- Card: Universitas / Sekolah -->
     <x-master-data-card title="Universitas / Sekolah" type="university" placeholder="Tambah Universitas..." :data="$universities" />
 
-    <!-- Card: Fakultas -->
-    <x-master-data-card title="Fakultas" type="faculty" placeholder="Tambah Fakultas..." :data="$faculties" />
 
-    <!-- Card: Jurusan -->
-    <x-master-data-card title="Jurusan" type="major" placeholder="Tambah Jurusan..." :data="$majors" />
-
-    <!-- Card: Program Studi -->
-    <x-master-data-card title="Program Studi (Prodi)" type="study-program" placeholder="Tambah Prodi..." :data="$studyPrograms" />
 
 </div>
 
