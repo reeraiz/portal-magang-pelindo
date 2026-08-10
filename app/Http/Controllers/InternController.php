@@ -63,7 +63,26 @@ class InternController extends Controller
             $progress = $totalDays > 0 ? min(100, round(($daysAttended / $totalDays) * 100)) : 0;
         }
 
-        return view('intern.absensi', compact('todayAttendance', 'recentActivities', 'progress', 'totalDays', 'daysAttended', 'remainingDays', 'user'));
+        $hasFaceRegistered = !empty($user->face_descriptor);
+        $userFaceDescriptor = $user->face_descriptor ?? '[]';
+
+        return view('intern.absensi', compact('todayAttendance', 'recentActivities', 'progress', 'totalDays', 'daysAttended', 'remainingDays', 'user', 'hasFaceRegistered', 'userFaceDescriptor'));
+    }
+
+    /**
+     * Mendaftarkan biometrik wajah ke database
+     */
+    public function registerFace(Request $request)
+    {
+        $request->validate([
+            'face_descriptor' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        $user->face_descriptor = $request->face_descriptor;
+        $user->save();
+
+        return redirect()->back()->with('success', 'Wajah berhasil didaftarkan! Sekarang Anda dapat melakukan absensi.');
     }
 
     /**
@@ -72,7 +91,8 @@ class InternController extends Controller
     public function storeAbsensi(Request $request)
     {
         $request->validate([
-            'type' => 'required|in:check_in,check_out',
+            'type'       => 'required|in:check_in,check_out',
+            'face_photo' => 'required|string',
         ]);
 
         $type = $request->type;
@@ -96,6 +116,24 @@ class InternController extends Controller
         // Jangan izinkan absen jika sudah mengajukan izin/sakit
         if (in_array($attendance->status, ['pending', 'izin', 'sakit'])) {
             return redirect()->back()->withErrors(['error' => 'Anda sudah mengajukan izin/sakit hari ini, tidak dapat melakukan absensi.']);
+        }
+
+        // Proses dan simpan foto wajah dari base64
+        $facePhotoBase64 = $request->input('face_photo');
+        if ($facePhotoBase64 && preg_match('/^data:image\/(\w+);base64,/', $facePhotoBase64, $matches)) {
+            $imageData = base64_decode(substr($facePhotoBase64, strpos($facePhotoBase64, ',') + 1));
+            $extension = strtolower($matches[1]) === 'jpeg' ? 'jpg' : strtolower($matches[1]);
+
+            $folder   = 'face_photos/' . Auth::id();
+            $filename = $type . '_' . $now->format('Ymd_His') . '.' . $extension;
+            $path     = $folder . '/' . $filename;
+
+            Storage::disk('public')->makeDirectory($folder);
+            Storage::disk('public')->put($path, $imageData);
+
+            $attendance->face_photo = $path;
+        } else {
+            return redirect()->back()->withErrors(['error' => 'Foto wajah tidak valid. Silakan ulangi proses absensi.']);
         }
 
         if ($type === 'check_in' && ! $attendance->check_in) {

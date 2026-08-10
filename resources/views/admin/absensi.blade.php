@@ -85,6 +85,7 @@
                         <th class="px-6 py-4">Intern</th>
                         <th class="px-6 py-4">Waktu</th>
                         <th class="px-6 py-4">Status & Keterangan</th>
+                        <th class="px-6 py-4">Foto Wajah</th>
                         <th class="px-6 py-4">Aksi</th>
                     </tr>
                 </thead>
@@ -136,6 +137,31 @@
                             </div>
                             @endif
                         </td>
+                        <!-- Kolom Foto Wajah -->
+                        <td class="px-6 py-4">
+                            @if($att->face_photo)
+                                <button
+                                    type="button"
+                                    onclick="showFacePhoto('{{ asset('storage/' . $att->face_photo) }}', '{{ $att->user->name }}', '{{ \Carbon\Carbon::parse($att->date)->format('d M Y') }}')"
+                                    class="group relative w-12 h-12 rounded-xl overflow-hidden border-2 border-blue-200 hover:border-blue-500 shadow-sm hover:shadow-md transition-all duration-200 block"
+                                    title="Lihat foto wajah"
+                                >
+                                    <img
+                                        src="{{ asset('storage/' . $att->face_photo) }}"
+                                        alt="Foto wajah {{ $att->user->name }}"
+                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                                    >
+                                    <div class="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/20 flex items-center justify-center transition-all duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-hover:opacity-100 transition-opacity"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    </div>
+                                </button>
+                            @else
+                                <span class="inline-flex items-center gap-1 text-xs text-gray-400 font-medium">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    Tidak ada
+                                </span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2">
                                 @if(!in_array($att->status, ['verified', 'hadir', 'izin', 'sakit']))
@@ -177,6 +203,38 @@
     </div>
 </div>
 
+<!-- Modal Lightbox Foto Wajah -->
+<div id="face-photo-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden" onclick="closeFacePhoto()">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full mx-4" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4 flex items-center justify-between">
+            <div>
+                <h3 class="text-white font-bold text-base" id="face-modal-name">Foto Wajah</h3>
+                <p class="text-blue-200 text-xs" id="face-modal-date"></p>
+            </div>
+            <button onclick="closeFacePhoto()" class="text-white/70 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <!-- Foto -->
+        <div class="bg-gray-900 flex items-center justify-center">
+            <img id="face-modal-img" src="" alt="Foto Wajah" class="max-w-full max-h-80 object-contain">
+        </div>
+        <!-- Footer -->
+        <div class="px-5 py-3 bg-gray-50 flex items-center justify-between border-t border-gray-100">
+            <span class="text-xs text-gray-500 font-medium flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                Diambil saat absensi
+            </span>
+            <a id="face-modal-download" href="" download target="_blank"
+                class="text-xs text-blue-600 font-semibold hover:text-blue-800 transition-colors flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Unduh Foto
+            </a>
+        </div>
+    </div>
+</div>
+
 <script>
     const divisionsData = @json($divisions);
 
@@ -208,6 +266,24 @@
         if (document.getElementById('filter_division').value) {
             filterDepartments('filter_division', 'filter_department');
         }
+    });
+
+    function showFacePhoto(url, name, date) {
+        document.getElementById('face-modal-img').src = url;
+        document.getElementById('face-modal-name').innerText = name;
+        document.getElementById('face-modal-date').innerText = 'Tanggal: ' + date;
+        document.getElementById('face-modal-download').href = url;
+        document.getElementById('face-photo-modal').classList.remove('hidden');
+    }
+
+    function closeFacePhoto() {
+        document.getElementById('face-photo-modal').classList.add('hidden');
+        document.getElementById('face-modal-img').src = '';
+    }
+
+    // Tutup modal dengan Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeFacePhoto();
     });
 </script>
 @endsection

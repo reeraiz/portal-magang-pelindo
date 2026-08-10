@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:intern'])->prefix('intern')->name('intern.')->group(function () {
         Route::get('/absensi', [InternController::class, 'absensi'])->name('absensi');
         Route::post('/absensi', [InternController::class, 'storeAbsensi'])->name('absensi.store')->middleware('throttle:10,1');
+        Route::post('/absensi/register-face', [InternController::class, 'registerFace'])->name('absensi.register-face')->middleware('throttle:10,1');
         Route::post('/absensi/izin', [InternController::class, 'storeIzin'])->name('absensi.izin')->middleware('throttle:5,1');
         Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves');
         Route::post('/leaves', [LeaveController::class, 'store'])->name('leaves.store')->middleware('throttle:10,1');
