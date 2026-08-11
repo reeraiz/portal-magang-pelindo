@@ -393,6 +393,7 @@
         document.getElementById('btn-confirm').classList.add('hidden');
         document.getElementById('detection-status').classList.add('hidden');
         document.getElementById('camera-input').value = '';
+        document.getElementById('btn-open-camera').classList.remove('hidden');
 
         const titles = { 
             check_in: 'Foto Wajah — Absen Masuk', 
@@ -418,6 +419,19 @@
             } catch (err) {
                 console.warn('WebRTC gagal, menggunakan fallback input file:', err);
             }
+        }
+        
+        // Pengecekan perangkat
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (!isMobile) {
+            // Jika diakses via Laptop/PC dan kamera gagal (karena HTTP)
+            document.getElementById('placeholder').classList.add('hidden');
+            document.getElementById('btn-open-camera').classList.add('hidden');
+            
+            const actionText = (type === 'register_face') ? 'pendaftaran biometrik wajah' : 'absensi';
+            document.getElementById('modal-instruction').innerHTML = `<span class="text-red-500 font-bold block mt-4 text-sm">Kamera tidak dapat diakses di PC/Laptop karena koneksi tidak aman (Bukan HTTPS).<br><br>Silakan lakukan ${actionText} menggunakan HP Anda.</span>`;
+            return;
         }
         
         // Fallback untuk Mobile HTTP
