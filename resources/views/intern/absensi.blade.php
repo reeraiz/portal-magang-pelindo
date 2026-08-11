@@ -591,7 +591,7 @@
                         document.getElementById('modal-instruction').innerText = `Lanjut mengambil foto wajah ${registerStepNames[registerStep]}.`;
                     } else {
                         setDetectionStatus('success', 'Ketiga sudut wajah berhasil dipindai! Silakan simpan data biometrik Anda.');
-                        showConfirmButton('Simpan Biometrik Wajah');
+                        document.getElementById('btn-confirm').innerText = 'Simpan Biometrik Wajah';
                         document.getElementById('btn-camera-text').innerText = 'Ulangi dari Awal';
                         document.getElementById('modal-instruction').innerText = 'Klik tombol di bawah untuk menyelesaikan pendaftaran.';
                     }
