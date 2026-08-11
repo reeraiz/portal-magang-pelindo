@@ -249,10 +249,10 @@
 
 <!-- ===================== MODAL FOTO WAJAH ===================== -->
 <div id="face-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] flex flex-col overflow-hidden">
 
         <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -265,7 +265,7 @@
         </div>
 
         <!-- Body -->
-        <div class="p-6">
+        <div class="p-6 overflow-y-auto flex-1">
 
             <!-- Area preview foto -->
             <div class="relative rounded-xl overflow-hidden bg-gray-100 aspect-video mb-4 flex items-center justify-center" id="preview-area">
@@ -310,8 +310,8 @@
                     <span id="btn-camera-text">Buka Kamera</span>
                 </button>
                 <!-- Tombol Konfirmasi (muncul setelah foto diambil) -->
-                <button id="btn-confirm" type="button" onclick="confirmAbsensi()"
-                    class="hidden flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white font-bold rounded-xl transition-all duration-200 hover:bg-green-700 active:scale-95">
+                <button id="btn-confirm" type="button" onclick="confirmAbsensi()" style="display: none;"
+                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white font-bold rounded-xl transition-all duration-200 hover:bg-green-700 active:scale-95">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     Konfirmasi Absen
                 </button>
@@ -390,7 +390,7 @@
         document.getElementById('webcam-video').classList.add('hidden');
         document.getElementById('photo-badge').classList.add('hidden');
         document.getElementById('placeholder').classList.remove('hidden');
-        document.getElementById('btn-confirm').classList.add('hidden');
+        document.getElementById('btn-confirm').style.display = 'none';
         document.getElementById('detection-status').classList.add('hidden');
         document.getElementById('camera-input').value = '';
         document.getElementById('btn-open-camera').classList.remove('hidden');
@@ -445,7 +445,7 @@
         if (btnText === 'Ulangi Foto' || btnText === 'Lanjut' || btnText === 'Ulangi dari Awal') {
             document.getElementById('photo-preview').classList.add('hidden');
             document.getElementById('photo-badge').classList.add('hidden');
-            document.getElementById('btn-confirm').classList.add('hidden');
+            document.getElementById('btn-confirm').style.display = 'none';
             document.getElementById('detection-status').classList.add('hidden');
             document.getElementById('placeholder').classList.remove('hidden');
             
@@ -472,7 +472,7 @@
         if (btnText === 'Ulangi Foto' || btnText === 'Lanjut' || btnText === 'Ulangi dari Awal') {
             document.getElementById('photo-preview').classList.add('hidden');
             document.getElementById('photo-badge').classList.add('hidden');
-            document.getElementById('btn-confirm').classList.add('hidden');
+            document.getElementById('btn-confirm').style.display = 'none';
             document.getElementById('detection-status').classList.add('hidden');
             document.getElementById('webcam-video').classList.remove('hidden');
             
@@ -544,7 +544,7 @@
 
     async function processCapturedPhoto(imgElement) {
         document.getElementById('btn-camera-text').innerText = 'Ulangi Foto';
-        document.getElementById('btn-confirm').classList.add('hidden');
+        document.getElementById('btn-confirm').style.display = 'none';
         document.getElementById('photo-badge').classList.add('hidden');
 
         setDetectionStatus('loading', 'Menganalisis biometrik wajah...');
@@ -642,7 +642,7 @@
         const btn = document.getElementById('btn-confirm');
         btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> ${text}`;
         btn.classList.remove('hidden');
-        btn.style.display = 'flex'; // Force display flex
+        btn.style.display = 'flex';
         
         const badge = document.getElementById('photo-badge');
         badge.classList.remove('hidden');
