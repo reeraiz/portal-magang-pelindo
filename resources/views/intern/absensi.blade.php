@@ -303,17 +303,17 @@
 
             <!-- Tombol aksi -->
             <div class="flex flex-col sm:flex-row gap-3">
+                <!-- Tombol Konfirmasi (muncul setelah foto diambil) -->
+                <button id="btn-confirm" type="button" onclick="confirmAbsensi()" style="display: none;"
+                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white font-bold rounded-xl transition-all duration-200 hover:bg-green-700 active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Konfirmasi Absen
+                </button>
                 <!-- Tombol Buka Kamera / Ulangi -->
                 <button id="btn-open-camera" type="button"
                     class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-bold rounded-xl transition-all duration-200 hover:bg-blue-700 active:scale-95">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     <span id="btn-camera-text">Buka Kamera</span>
-                </button>
-                <!-- Tombol Konfirmasi (muncul setelah foto diambil) -->
-                <button id="btn-confirm" type="button" onclick="confirmAbsensi()"
-                    class="hidden flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white font-bold rounded-xl transition-all duration-200 hover:bg-green-700 active:scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Konfirmasi Absen
                 </button>
             </div>
         </div>
